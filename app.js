@@ -1,5 +1,4 @@
 const languages = ["English", "Spanish", "French", "Portuguese", "Korean", "Tagalog"];
-const DEFAULT_CLASS_NAME = "New Class";
 
 const state = {
   activeRole: "coach",
@@ -46,7 +45,7 @@ const state = {
   classes: [
     {
       id: "class-1",
-      name: "Foundations of Faith",
+      name: "Basic Beliefs",
       assignments: [
         { id: "assignment-1", name: "Lesson 1", questionCount: 3 },
         { id: "assignment-2", name: "Lesson 2", questionCount: 2 }
@@ -54,10 +53,20 @@ const state = {
     },
     {
       id: "class-2",
-      name: "Gospel of John",
+      name: "Parables of Jesus",
       assignments: [
         { id: "assignment-3", name: "Chapter Reflection", questionCount: 4 }
       ]
+    },
+    {
+      id: "class-3",
+      name: "Men of the Bible",
+      assignments: []
+    },
+    {
+      id: "class-4",
+      name: "Prayer",
+      assignments: []
     }
   ],
   submissions: [
@@ -160,10 +169,9 @@ const elements = {
   studentCoach: document.querySelector("#student-coach"),
   studentTable: document.querySelector("#student-table"),
   classForm: document.querySelector("#class-form"),
+  addClassForm: document.querySelector("#add-class-form"),
   classSelect: document.querySelector("#class-select"),
   newClassName: document.querySelector("#new-class-name"),
-  addClass: document.querySelector("#add-class"),
-  className: document.querySelector("#class-name"),
   assignmentName: document.querySelector("#assignment-name"),
   assignmentCount: document.querySelector("#assignment-count"),
   classCatalog: document.querySelector("#class-catalog"),
@@ -271,11 +279,13 @@ function bindEvents() {
 
   elements.classForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    upsertClassAssignment();
+    addAssignmentToClass();
   });
 
-  elements.classSelect.addEventListener("change", syncClassRenameInput);
-  elements.addClass.addEventListener("click", addClassFromBuilder);
+  elements.addClassForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    addClassFromBuilder();
+  });
 }
 
 function render() {
@@ -755,12 +765,6 @@ function renderClassBuilderOptions() {
     elements.classSelect,
     state.classes.map((classRecord) => ({ value: classRecord.id, label: classRecord.name }))
   );
-  syncClassRenameInput();
-}
-
-function syncClassRenameInput() {
-  const classRecord = getClass(elements.classSelect.value);
-  elements.className.value = classRecord?.name || "";
 }
 
 function upsertStudent() {
@@ -815,58 +819,66 @@ function renderClassCatalog() {
   elements.classCatalog.innerHTML = state.classes
     .map(
       (classRecord) => `
-        <article class="catalog-card">
+        <article class="catalog-card" data-class-id="${classRecord.id}">
           <header class="catalog-header">
-            <strong>${classRecord.name}</strong>
+            <strong class="catalog-class-name" data-toggle-class="${classRecord.id}" style="cursor:pointer;">${classRecord.name}</strong>
             <div class="catalog-actions">
-              <button type="button" class="secondary" data-edit-class="${classRecord.id}">Edit</button>
+              <button type="button" class="secondary" data-rename-class="${classRecord.id}">Rename</button>
               <button type="button" class="secondary" data-delete-class="${classRecord.id}">Delete</button>
             </div>
           </header>
-          <ul>
-            ${classRecord.assignments
-              .map((assignment) => `<li>${assignment.name} — ${assignment.questionCount} questions</li>`)
-              .join("")}
+          <ul class="catalog-assignments hidden" data-assignments-for="${classRecord.id}">
+            ${classRecord.assignments.length === 0
+              ? '<li class="muted">No assignments yet</li>'
+              : classRecord.assignments
+                  .map((assignment) => `<li>${assignment.name} — ${assignment.questionCount} questions</li>`)
+                  .join("")}
           </ul>
         </article>
       `
     )
     .join("");
 
-  elements.classCatalog.querySelectorAll("[data-edit-class]").forEach((button) => {
+  elements.classCatalog.querySelectorAll("[data-toggle-class]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const assignmentList = elements.classCatalog.querySelector(`[data-assignments-for="${el.dataset.toggleClass}"]`);
+      if (assignmentList) {
+        assignmentList.classList.toggle("hidden");
+        el.classList.toggle("expanded");
+      }
+    });
+  });
+
+  elements.classCatalog.querySelectorAll("[data-rename-class]").forEach((button) => {
     button.addEventListener("click", () => {
-      elements.classSelect.value = button.dataset.editClass;
-      syncClassRenameInput();
-      toast("Class loaded into the builder.");
+      const classRecord = getClass(button.dataset.renameClass);
+      if (!classRecord) return;
+      const newName = prompt("Enter new class name:", classRecord.name);
+      if (!newName || !newName.trim()) return;
+      const trimmed = newName.trim();
+      if (state.classes.some((item) => item.id !== classRecord.id && item.name.toLowerCase() === trimmed.toLowerCase())) {
+        toast("Class name already exists.");
+        return;
+      }
+      classRecord.name = trimmed;
+      toast(`Class renamed to: ${trimmed}`);
+      render();
     });
   });
 
   elements.classCatalog.querySelectorAll("[data-delete-class]").forEach((button) => {
     button.addEventListener("click", () => {
       const classRecord = getClass(button.dataset.deleteClass);
-      if (!classRecord) {
-        return;
-      }
-
+      if (!classRecord) return;
       state.classes = state.classes.filter((item) => item.id !== classRecord.id);
-      if (state.classes.length === 0) {
-        const fallback = {
-          id: `class-${Date.now()}`,
-          name: DEFAULT_CLASS_NAME,
-          assignments: []
-        };
-        state.classes.push(fallback);
-      }
       toast(`Deleted class: ${classRecord.name}`);
       render();
     });
   });
 }
 
-function upsertClassAssignment() {
+function addAssignmentToClass() {
   const selectedClassId = elements.classSelect.value;
-  const renameClassName = elements.className.value.trim();
-  const renameClassNameLower = renameClassName.toLowerCase();
   const assignmentName = elements.assignmentName.value.trim();
   const questionCount = Number(elements.assignmentCount.value);
 
@@ -881,21 +893,6 @@ function upsertClassAssignment() {
     return;
   }
 
-  if (
-    renameClassName &&
-    renameClassNameLower !== classRecord.name.toLowerCase() &&
-    state.classes.some(
-      (item) => item.id !== classRecord.id && item.name.toLowerCase() === renameClassNameLower
-    )
-  ) {
-    toast("Class name already exists.");
-    return;
-  }
-
-  if (renameClassName) {
-    classRecord.name = renameClassName;
-  }
-
   classRecord.assignments.push({
     id: `assignment-${Date.now()}`,
     name: assignmentName,
@@ -904,8 +901,7 @@ function upsertClassAssignment() {
 
   elements.classForm.reset();
   elements.assignmentCount.value = "1";
-  renderClassBuilderOptions();
-  toast("Class catalog updated.");
+  toast(`Assignment added to ${classRecord.name}.`);
   render();
 }
 
@@ -930,7 +926,6 @@ function addClassFromBuilder() {
   elements.newClassName.value = "";
   render();
   elements.classSelect.value = newClass.id;
-  syncClassRenameInput();
   toast(`Class added: ${className}`);
 }
 

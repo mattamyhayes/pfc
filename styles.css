@@ -448,6 +448,20 @@ th {
   gap: 12px;
 }
 
+.catalog-class-name {
+  user-select: none;
+}
+
+.catalog-class-name::before {
+  content: "▶ ";
+  font-size: 0.75em;
+  display: inline-block;
+}
+
+.catalog-class-name.expanded::before {
+  content: "▼ ";
+}
+
 .catalog-header {
   display: flex;
   justify-content: space-between;
@@ -464,10 +478,6 @@ th {
 .catalog-actions button {
   padding: 8px 12px;
   font-size: 0.86rem;
-}
-
-.class-add-row {
-  margin: 0;
 }
 
 @media (max-width: 1100px) {
