@@ -16,6 +16,7 @@
   --success: #059669;
   --success-bg: #d1fae5;
   --danger: #dc2626;
+  --translated-bg: #fce4ec;
   --radius: 12px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
   --shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -446,7 +447,7 @@ th {
 }
 
 .translated-answer {
-  background: #fce4ec;
+  background: var(--translated-bg);
 }
 
 .eyebrow {
