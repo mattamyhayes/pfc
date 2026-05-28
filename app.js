@@ -1,4 +1,5 @@
 const languages = ["English", "Spanish", "French", "Portuguese", "Korean", "Tagalog"];
+const DEFAULT_CLASS_NAME = "New Class";
 
 const state = {
   activeRole: "coach",
@@ -851,7 +852,7 @@ function renderClassCatalog() {
       if (state.classes.length === 0) {
         const fallback = {
           id: `class-${Date.now()}`,
-          name: "New Class",
+          name: DEFAULT_CLASS_NAME,
           assignments: []
         };
         state.classes.push(fallback);
@@ -865,6 +866,7 @@ function renderClassCatalog() {
 function upsertClassAssignment() {
   const selectedClassId = elements.classSelect.value;
   const renameClassName = elements.className.value.trim();
+  const renameClassNameLower = renameClassName.toLowerCase();
   const assignmentName = elements.assignmentName.value.trim();
   const questionCount = Number(elements.assignmentCount.value);
 
@@ -881,9 +883,9 @@ function upsertClassAssignment() {
 
   if (
     renameClassName &&
-    renameClassName.toLowerCase() !== classRecord.name.toLowerCase() &&
+    renameClassNameLower !== classRecord.name.toLowerCase() &&
     state.classes.some(
-      (item) => item.id !== classRecord.id && item.name.toLowerCase() === renameClassName.toLowerCase()
+      (item) => item.id !== classRecord.id && item.name.toLowerCase() === renameClassNameLower
     )
   ) {
     toast("Class name already exists.");
@@ -999,6 +1001,7 @@ function getSubmissionQuestionCount(submission) {
 }
 
 function ensureSubmissionSnapshots() {
+  // Existing submission records are intentionally updated in-place so historical labels stay stable.
   state.submissions.forEach((submission) => {
     const classRecord = getClass(submission.classId);
     const assignment = getAssignment(submission.classId, submission.assignmentId);
