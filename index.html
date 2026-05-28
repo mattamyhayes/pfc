@@ -15,194 +15,176 @@
           src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
           alt="PFC Prisoners For Christ"
         >
-        <div>
-          <h1>Bible Institute Grading System</h1>
-          <p class="hero-copy">
-            A role-based workflow demo for class setup, paper uploads, volunteer grading, coach reporting, and program sponsorship.
-          </p>
-        </div>
+        <h1>Bible Institute Grading System</h1>
       </div>
       <div class="hero-actions">
-        <nav class="role-switcher" aria-label="Switch demo role">
-          <button type="button" class="role-link active" data-role-link="coach">Coach</button>
-          <button type="button" class="role-link" data-role-link="volunteer">Volunteer</button>
-          <button type="button" class="role-link" data-role-link="sponsor">Program Sponsor</button>
-          <button type="button" class="role-link" data-role-link="admin">Admin</button>
-        </nav>
         <div class="preferences">
-          <label for="preferred-language">Preferred language</label>
+          <label for="preferred-language">Language</label>
           <select id="preferred-language"></select>
         </div>
       </div>
     </header>
 
-    <main class="layout">
-      <aside class="sidebar">
-        <section class="panel">
-          <h2>Demo overview</h2>
-          <div class="stats" id="summary-stats"></div>
-        </section>
-        <section class="panel">
-          <h2>Email activity</h2>
-          <ul class="activity-list" id="email-log"></ul>
-        </section>
-      </aside>
+    <nav class="role-tabs" aria-label="Switch demo role">
+      <button type="button" class="tab active" data-role-link="coach">Coach</button>
+      <button type="button" class="tab" data-role-link="volunteer">Volunteer</button>
+      <button type="button" class="tab" data-role-link="sponsor">Program Sponsor</button>
+      <button type="button" class="tab" data-role-link="admin">Admin</button>
+    </nav>
 
-      <section class="content">
-        <section class="panel role-panel active" data-role-panel="coach">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Coach dashboard</p>
-              <h2>Upload papers and manage grader assignment</h2>
+    <main class="main-content">
+      <!-- Coach Panel -->
+      <section class="role-panel active" data-role-panel="coach">
+        <div class="panel-header">
+          <h2>Upload Papers &amp; Manage Grading</h2>
+          <label class="session-select">
+            Signed in as
+            <select id="active-coach"></select>
+          </label>
+        </div>
+
+        <div class="content-grid">
+          <section class="card">
+            <h3>Upload Assignment</h3>
+            <form id="upload-form" class="form">
+              <label>
+                Student
+                <select id="upload-student" required></select>
+              </label>
+              <label>
+                Class
+                <select id="upload-class" required></select>
+              </label>
+              <label>
+                Assignment
+                <select id="upload-assignment" required></select>
+              </label>
+              <label>
+                Paper language
+                <select id="upload-language"></select>
+              </label>
+              <label>
+                Grader
+                <select id="upload-volunteer" required></select>
+              </label>
+              <label>
+                Upload PDF or photo
+                <input id="upload-file" type="file" accept="application/pdf,image/*" capture="environment" required>
+              </label>
+              <button type="submit" class="primary">Upload Paper</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h3>Student Progress</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Current class / assignment</th>
+                    <th>Last completed</th>
+                    <th>Pending status</th>
+                    <th>Days with volunteer</th>
+                  </tr>
+                </thead>
+                <tbody id="coach-report"></tbody>
+              </table>
             </div>
-            <label class="session-select">
-              Signed in as
-              <select id="active-coach"></select>
-            </label>
-          </div>
+          </section>
+        </div>
+      </section>
 
-          <div class="grid two-column">
-            <section class="subpanel">
-              <h3>Upload assignment</h3>
-              <form id="upload-form" class="stack-form">
-                <label>
-                  Student
-                  <select id="upload-student" required></select>
-                </label>
-                <label>
-                  Class
-                  <select id="upload-class" required></select>
-                </label>
-                <label>
-                  Assignment
-                  <select id="upload-assignment" required></select>
-                </label>
-                <label>
-                  Paper language
-                  <select id="upload-language"></select>
-                </label>
-                <label>
-                  Grader
-                  <select id="upload-volunteer" required></select>
-                </label>
-                <label>
-                  Upload PDF or phone photo
-                  <input id="upload-file" type="file" accept="application/pdf,image/*" capture="environment" required>
-                </label>
-                <button type="submit" class="primary">Upload paper</button>
-              </form>
-            </section>
+      <!-- Volunteer Panel -->
+      <section class="role-panel" data-role-panel="volunteer">
+        <div class="panel-header">
+          <h2>Review &amp; Grade Papers</h2>
+          <label class="session-select">
+            Signed in as
+            <select id="active-volunteer"></select>
+          </label>
+        </div>
 
-            <section class="subpanel">
-              <h3>Coach report</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>Current class / assignment</th>
-                      <th>Last completed</th>
-                      <th>Pending status</th>
-                      <th>Days with volunteer</th>
-                    </tr>
-                  </thead>
-                  <tbody id="coach-report"></tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        </section>
+        <div class="content-grid">
+          <section class="card">
+            <h3>Assigned Papers</h3>
+            <div id="volunteer-queue" class="card-list"></div>
+          </section>
 
-        <section class="panel role-panel" data-role-panel="volunteer">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Volunteer landing page</p>
-              <h2>Review assigned papers and mark them complete</h2>
+          <section class="card">
+            <div id="review-empty" class="empty-state">
+              Select an assignment to review.
             </div>
-            <label class="session-select">
-              Signed in as
-              <select id="active-volunteer"></select>
-            </label>
-          </div>
-
-          <div class="grid two-column">
-            <section class="subpanel">
-              <h3>Assigned papers</h3>
-              <div id="volunteer-queue" class="card-list"></div>
-            </section>
-
-            <section class="subpanel">
-              <div id="review-empty" class="empty-state">
-                Select an assignment to review.
-              </div>
-              <div id="review-panel" class="review-panel hidden">
-                <div class="review-header">
-                  <div>
-                    <p class="eyebrow" id="review-meta"></p>
-                    <h3 id="review-title"></h3>
-                  </div>
-                  <div class="button-row">
-                    <button type="button" id="translate-paper" class="secondary">Translate paper</button>
-                    <button type="button" id="generate-pdf" class="secondary" disabled>Generate PDF packet</button>
-                  </div>
+            <div id="review-panel" class="review-panel hidden">
+              <div class="review-header">
+                <div>
+                  <p class="eyebrow" id="review-meta"></p>
+                  <h3 id="review-title"></h3>
                 </div>
-                <div class="paper-preview">
-                  <p><strong>Uploaded file:</strong> <span id="review-file"></span></p>
-                  <p><strong>Original language:</strong> <span id="review-language"></span></p>
+                <div class="button-row">
+                  <button type="button" id="translate-paper" class="secondary">Translate paper</button>
+                  <button type="button" id="generate-pdf" class="secondary" disabled>Generate PDF packet</button>
                 </div>
-                <form id="review-form" class="stack-form"></form>
               </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel role-panel" data-role-panel="sponsor">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Program Sponsor workspace</p>
-              <h2>Create institutions, students, coaches, and volunteers</h2>
+              <div class="paper-preview">
+                <p><strong>Uploaded file:</strong> <span id="review-file"></span></p>
+                <p><strong>Original language:</strong> <span id="review-language"></span></p>
+              </div>
+              <form id="review-form" class="form"></form>
             </div>
-          </div>
+          </section>
+        </div>
+      </section>
 
-          <div class="grid two-column">
-            <section class="subpanel">
-              <h3>Institution and user setup</h3>
-              <form id="institution-form" class="inline-form">
-                <label class="grow">
-                  New institution
-                  <input id="institution-name" type="text" placeholder="Add institution">
-                </label>
-                <button type="submit" class="secondary">Add institution</button>
-              </form>
+      <!-- Sponsor Panel -->
+      <section class="role-panel" data-role-panel="sponsor">
+        <div class="panel-header">
+          <h2>Manage Institutions &amp; Students</h2>
+        </div>
 
-              <form id="user-form" class="stack-form">
-                <label>
-                  Role
-                  <select id="user-role">
-                    <option value="coach">Coach</option>
-                    <option value="volunteer">Volunteer</option>
-                  </select>
-                </label>
-                <label>
-                  Full name
-                  <input id="user-name" type="text" autocomplete="name" required>
-                </label>
-                <label>
-                  Email address
-                  <input id="user-email" type="email" autocomplete="email" required>
-                </label>
-                <label>
-                  Password
-                  <input id="user-password" type="password" autocomplete="new-password" minlength="8" required>
-                </label>
-                <button type="submit" class="primary">Create user</button>
-              </form>
-            </section>
+        <div class="content-grid">
+          <section class="card">
+            <h3>Add Institution</h3>
+            <form id="institution-form" class="form form-inline">
+              <label class="grow">
+                Institution name
+                <input id="institution-name" type="text" placeholder="Enter institution name">
+              </label>
+              <button type="submit" class="secondary align-end">Add</button>
+            </form>
+          </section>
 
-            <section class="subpanel">
-              <h3>Student record</h3>
-              <form id="student-form" class="stack-form">
-                <input id="student-edit-id" type="hidden">
+          <section class="card">
+            <h3>Create User</h3>
+            <form id="user-form" class="form">
+              <label>
+                Role
+                <select id="user-role">
+                  <option value="coach">Coach</option>
+                  <option value="volunteer">Volunteer</option>
+                </select>
+              </label>
+              <label>
+                Full name
+                <input id="user-name" type="text" autocomplete="name" required>
+              </label>
+              <label>
+                Email address
+                <input id="user-email" type="email" autocomplete="email" required>
+              </label>
+              <label>
+                Password
+                <input id="user-password" type="password" autocomplete="new-password" minlength="8" required>
+              </label>
+              <button type="submit" class="primary">Create User</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h3>Add Student</h3>
+            <form id="student-form" class="form">
+              <input id="student-edit-id" type="hidden">
+              <div class="form-row">
                 <label>
                   First name
                   <input id="student-first-name" type="text" autocomplete="given-name" required>
@@ -211,84 +193,104 @@
                   Last name
                   <input id="student-last-name" type="text" autocomplete="family-name" required>
                 </label>
-                <label>
-                  Institution
-                  <select id="student-institution" required></select>
-                </label>
-                <div class="split-field">
-                  <label>
-                    Student ID
-                    <input id="student-identifier" type="text" required>
-                  </label>
-                  <button type="button" id="generate-student-id" class="secondary align-end">Generate ID</button>
-                </div>
-                <label>
-                  Assigned coach
-                  <select id="student-coach" required></select>
-                </label>
-                <button type="submit" class="primary">Save student</button>
-              </form>
-
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>ID</th>
-                      <th>Institution</th>
-                      <th>Coach</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody id="student-table"></tbody>
-                </table>
               </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel role-panel" data-role-panel="admin">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Admin configuration</p>
-              <h2>Create classes, assignments, and question counts</h2>
-            </div>
-          </div>
-
-          <div class="grid two-column">
-            <section class="subpanel">
-              <h3>Class builder</h3>
-              <form id="add-class-form" class="inline-form" style="margin-bottom:18px;">
+              <label>
+                Institution
+                <select id="student-institution" required></select>
+              </label>
+              <div class="form-row">
                 <label class="grow">
-                  New class name
-                  <input id="new-class-name" type="text" placeholder="Enter class name">
+                  Student ID
+                  <input id="student-identifier" type="text" required>
                 </label>
-                <button type="submit" class="secondary align-end">Add class</button>
-              </form>
-              <form id="class-form" class="stack-form">
-                <label>
-                  Class
-                  <select id="class-select" required></select>
-                </label>
-                <label>
-                  Assignment name
-                  <input id="assignment-name" type="text" required>
-                </label>
-                <label>
-                  Number of questions
-                  <input id="assignment-count" type="number" min="1" value="1" required>
-                </label>
-                <button type="submit" class="primary">Add assignment</button>
-              </form>
-            </section>
+                <button type="button" id="generate-student-id" class="secondary align-end">Generate ID</button>
+              </div>
+              <label>
+                Assigned coach
+                <select id="student-coach" required></select>
+              </label>
+              <button type="submit" class="primary">Save Student</button>
+            </form>
+          </section>
 
-            <section class="subpanel">
-              <h3>Current class catalog</h3>
-              <div id="class-catalog" class="card-list"></div>
-            </section>
-          </div>
-        </section>
+          <section class="card">
+            <h3>Student Directory</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>ID</th>
+                    <th>Institution</th>
+                    <th>Coach</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="student-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
+
+      <!-- Admin Panel -->
+      <section class="role-panel" data-role-panel="admin">
+        <div class="panel-header">
+          <h2>Class &amp; Assignment Setup</h2>
+        </div>
+
+        <div class="content-grid">
+          <section class="card">
+            <h3>Add a Class</h3>
+            <form id="add-class-form" class="form form-inline">
+              <label class="grow">
+                Class name
+                <input id="new-class-name" type="text" placeholder="Enter class name">
+              </label>
+              <button type="submit" class="secondary align-end">Add Class</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h3>Add Assignment</h3>
+            <form id="class-form" class="form">
+              <label>
+                Class
+                <select id="class-select" required></select>
+              </label>
+              <label>
+                Assignment name
+                <input id="assignment-name" type="text" required>
+              </label>
+              <label>
+                Number of questions
+                <input id="assignment-count" type="number" min="1" value="1" required>
+              </label>
+              <button type="submit" class="primary">Add Assignment</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h3>Class Catalog</h3>
+            <div id="class-catalog" class="card-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Summary & Activity (collapsed at bottom) -->
+      <details class="activity-drawer">
+        <summary>Activity Log &amp; Stats</summary>
+        <div class="drawer-content">
+          <section class="card">
+            <h3>Overview</h3>
+            <div class="stats" id="summary-stats"></div>
+          </section>
+          <section class="card">
+            <h3>Email Activity</h3>
+            <ul class="activity-list" id="email-log"></ul>
+          </section>
+        </div>
+      </details>
     </main>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
