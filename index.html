@@ -258,21 +258,17 @@
           <div class="grid two-column">
             <section class="subpanel">
               <h3>Class builder</h3>
+              <form id="add-class-form" class="inline-form" style="margin-bottom:18px;">
+                <label class="grow">
+                  New class name
+                  <input id="new-class-name" type="text" placeholder="Enter class name">
+                </label>
+                <button type="submit" class="secondary align-end">Add class</button>
+              </form>
               <form id="class-form" class="stack-form">
                 <label>
                   Class
                   <select id="class-select" required></select>
-                </label>
-                <div class="inline-form class-add-row">
-                  <label class="grow">
-                    Add new class
-                    <input id="new-class-name" type="text" placeholder="New class name">
-                  </label>
-                  <button type="button" id="add-class" class="secondary align-end">Add class</button>
-                </div>
-                <label>
-                  Class name (for rename)
-                  <input id="class-name" type="text" placeholder="Optional rename">
                 </label>
                 <label>
                   Assignment name
@@ -282,7 +278,7 @@
                   Number of questions
                   <input id="assignment-count" type="number" min="1" value="1" required>
                 </label>
-                <button type="submit" class="primary">Save class assignment</button>
+                <button type="submit" class="primary">Add assignment</button>
               </form>
             </section>
 
