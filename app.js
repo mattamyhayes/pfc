@@ -159,6 +159,9 @@ const elements = {
   studentCoach: document.querySelector("#student-coach"),
   studentTable: document.querySelector("#student-table"),
   classForm: document.querySelector("#class-form"),
+  classSelect: document.querySelector("#class-select"),
+  newClassName: document.querySelector("#new-class-name"),
+  addClass: document.querySelector("#add-class"),
   className: document.querySelector("#class-name"),
   assignmentName: document.querySelector("#assignment-name"),
   assignmentCount: document.querySelector("#assignment-count"),
@@ -167,6 +170,7 @@ const elements = {
 };
 
 function init() {
+  ensureSubmissionSnapshots();
   fillLanguageOptions(elements.preferredLanguage, state.preferredLanguage);
   fillLanguageOptions(elements.uploadLanguage, "English");
   bindEvents();
@@ -268,6 +272,9 @@ function bindEvents() {
     event.preventDefault();
     upsertClassAssignment();
   });
+
+  elements.classSelect.addEventListener("change", syncClassRenameInput);
+  elements.addClass.addEventListener("click", addClassFromBuilder);
 }
 
 function render() {
@@ -281,6 +288,7 @@ function render() {
   renderVolunteerReview();
   renderSponsorForms();
   renderStudents();
+  renderClassBuilderOptions();
   renderClassCatalog();
 }
 
@@ -406,7 +414,10 @@ function createSubmission() {
     id: `submission-${Date.now()}`,
     studentId: student.id,
     classId: classRecord.id,
+    classNameSnapshot: classRecord.name,
     assignmentId: assignment.id,
+    assignmentNameSnapshot: assignment.name,
+    questionCountSnapshot: assignment.questionCount,
     coachId: student.coachId,
     volunteerId: volunteer.id,
     language: elements.uploadLanguage.value || "English",
@@ -470,7 +481,6 @@ function renderVolunteerQueue() {
   elements.volunteerQueue.innerHTML = assigned
     .map((submission) => {
       const student = getStudent(submission.studentId);
-      const assignment = getAssignment(submission.classId, submission.assignmentId);
       return `
         <article class="queue-card">
           <header>
@@ -483,7 +493,7 @@ function renderVolunteerQueue() {
             </span>
           </header>
           <div class="muted">
-            ${assignment?.questionCount || submission.questionFeedback.length} questions · Uploaded ${formatDate(submission.uploadedAt)}
+            ${getSubmissionQuestionCount(submission)} questions · Uploaded ${formatDate(submission.uploadedAt)}
           </div>
           <button type="button" class="secondary" data-open-review="${submission.id}">
             ${submission.status === "complete" ? "View packet" : "Review assignment"}
@@ -511,14 +521,13 @@ function renderVolunteerReview() {
   }
 
   const student = getStudent(submission.studentId);
-  const assignment = getAssignment(submission.classId, submission.assignmentId);
   const targetLanguage = state.preferredLanguage;
   const showTranslated = state.showTranslatedPaper || submission.language === targetLanguage;
 
   elements.reviewEmpty.classList.add("hidden");
   elements.reviewPanel.classList.remove("hidden");
   elements.reviewMeta.textContent = `${student.firstName} ${student.lastName} · ${describeSubmission(submission)}`;
-  elements.reviewTitle.textContent = `${assignment?.name || "Assignment"} review`;
+  elements.reviewTitle.textContent = `${getSubmissionAssignmentName(submission)} review`;
   elements.reviewFile.textContent = submission.fileName;
   elements.reviewLanguage.textContent = submission.language;
   elements.generatePdf.disabled = submission.status !== "complete";
@@ -600,7 +609,7 @@ function renderVolunteerReview() {
     submission.completedAt = new Date().toISOString();
     queueEmail(
       getCoach(submission.coachId)?.email || "coach@pfc-demo.org",
-      `Assignment complete: ${student.firstName} ${student.lastName} - ${assignment?.name || "Assignment"}`
+      `Assignment complete: ${student.firstName} ${student.lastName} - ${getSubmissionAssignmentName(submission)}`
     );
     toast("Assignment marked complete. PDF packet is ready.");
     render();
@@ -622,7 +631,6 @@ function generatePdfPacket() {
   }
 
   const student = getStudent(submission.studentId);
-  const assignment = getAssignment(submission.classId, submission.assignmentId);
   const translatedFeedback = submission.questionFeedback.map((feedback) =>
     translateText(feedback, submission.feedbackLanguage, submission.language)
   );
@@ -643,12 +651,12 @@ function generatePdfPacket() {
     <html lang="en">
       <head>
         <meta charset="utf-8">
-        <title>${student.firstName} ${student.lastName} - ${assignment?.name || "Packet"}</title>
+        <title>${student.firstName} ${student.lastName} - ${getSubmissionAssignmentName(submission)}</title>
         <style>
           body { font-family: Inter, Arial, sans-serif; color: #111827; padding: 24px; }
           .pdf-page { min-height: 92vh; page-break-after: always; }
           .pdf-page:last-child { page-break-after: auto; }
-          h1, h2 { color: #17375f; }
+          h1, h2 { color: #8e2326; }
           .pdf-question { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #d1d5db; }
         </style>
       </head>
@@ -656,8 +664,8 @@ function generatePdfPacket() {
         <section class="pdf-page">
           <h1>PFC Assignment Packet</h1>
           <p><strong>Student:</strong> ${student.firstName} ${student.lastName}</p>
-          <p><strong>Class:</strong> ${getClass(submission.classId)?.name || ""}</p>
-          <p><strong>Assignment:</strong> ${assignment?.name || ""}</p>
+          <p><strong>Class:</strong> ${getSubmissionClassName(submission)}</p>
+          <p><strong>Assignment:</strong> ${getSubmissionAssignmentName(submission)}</p>
           <p><strong>Uploaded language:</strong> ${submission.language}</p>
           ${submission.answers
             .map(
@@ -741,6 +749,19 @@ function renderStudents() {
   });
 }
 
+function renderClassBuilderOptions() {
+  populateSelect(
+    elements.classSelect,
+    state.classes.map((classRecord) => ({ value: classRecord.id, label: classRecord.name }))
+  );
+  syncClassRenameInput();
+}
+
+function syncClassRenameInput() {
+  const classRecord = getClass(elements.classSelect.value);
+  elements.className.value = classRecord?.name || "";
+}
+
 function upsertStudent() {
   const editId = elements.studentEditId.value;
   const payload = {
@@ -794,7 +815,13 @@ function renderClassCatalog() {
     .map(
       (classRecord) => `
         <article class="catalog-card">
-          <strong>${classRecord.name}</strong>
+          <header class="catalog-header">
+            <strong>${classRecord.name}</strong>
+            <div class="catalog-actions">
+              <button type="button" class="secondary" data-edit-class="${classRecord.id}">Edit</button>
+              <button type="button" class="secondary" data-delete-class="${classRecord.id}">Delete</button>
+            </div>
+          </header>
           <ul>
             ${classRecord.assignments
               .map((assignment) => `<li>${assignment.name} — ${assignment.questionCount} questions</li>`)
@@ -804,22 +831,67 @@ function renderClassCatalog() {
       `
     )
     .join("");
+
+  elements.classCatalog.querySelectorAll("[data-edit-class]").forEach((button) => {
+    button.addEventListener("click", () => {
+      elements.classSelect.value = button.dataset.editClass;
+      syncClassRenameInput();
+      toast("Class loaded into the builder.");
+    });
+  });
+
+  elements.classCatalog.querySelectorAll("[data-delete-class]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const classRecord = getClass(button.dataset.deleteClass);
+      if (!classRecord) {
+        return;
+      }
+
+      state.classes = state.classes.filter((item) => item.id !== classRecord.id);
+      if (state.classes.length === 0) {
+        const fallback = {
+          id: `class-${Date.now()}`,
+          name: "New Class",
+          assignments: []
+        };
+        state.classes.push(fallback);
+      }
+      toast(`Deleted class: ${classRecord.name}`);
+      render();
+    });
+  });
 }
 
 function upsertClassAssignment() {
-  const className = elements.className.value.trim();
+  const selectedClassId = elements.classSelect.value;
+  const renameClassName = elements.className.value.trim();
   const assignmentName = elements.assignmentName.value.trim();
   const questionCount = Number(elements.assignmentCount.value);
 
-  if (!className || !assignmentName || questionCount < 1) {
-    toast("Provide a class name, assignment name, and question count.");
+  const classRecord = getClass(selectedClassId);
+  if (!classRecord) {
+    toast("Select a class before saving.");
     return;
   }
 
-  let classRecord = state.classes.find((item) => item.name.toLowerCase() === className.toLowerCase());
-  if (!classRecord) {
-    classRecord = { id: `class-${Date.now()}`, name: className, assignments: [] };
-    state.classes.push(classRecord);
+  if (!assignmentName || questionCount < 1) {
+    toast("Provide an assignment name and question count.");
+    return;
+  }
+
+  if (
+    renameClassName &&
+    renameClassName.toLowerCase() !== classRecord.name.toLowerCase() &&
+    state.classes.some(
+      (item) => item.id !== classRecord.id && item.name.toLowerCase() === renameClassName.toLowerCase()
+    )
+  ) {
+    toast("Class name already exists.");
+    return;
+  }
+
+  if (renameClassName) {
+    classRecord.name = renameClassName;
   }
 
   classRecord.assignments.push({
@@ -830,8 +902,34 @@ function upsertClassAssignment() {
 
   elements.classForm.reset();
   elements.assignmentCount.value = "1";
+  renderClassBuilderOptions();
   toast("Class catalog updated.");
   render();
+}
+
+function addClassFromBuilder() {
+  const className = elements.newClassName.value.trim();
+  if (!className) {
+    toast("Enter a class name to add.");
+    return;
+  }
+
+  if (state.classes.some((item) => item.name.toLowerCase() === className.toLowerCase())) {
+    toast("Class already exists.");
+    return;
+  }
+
+  const newClass = {
+    id: `class-${Date.now()}`,
+    name: className,
+    assignments: []
+  };
+  state.classes.push(newClass);
+  elements.newClassName.value = "";
+  render();
+  elements.classSelect.value = newClass.id;
+  syncClassRenameInput();
+  toast(`Class added: ${className}`);
 }
 
 function populateSelect(element, options) {
@@ -881,9 +979,34 @@ function nextAssignmentLabel(student) {
 }
 
 function describeSubmission(submission) {
-  const classRecord = getClass(submission.classId);
-  const assignment = getAssignment(submission.classId, submission.assignmentId);
-  return `${classRecord?.name || "Class"} / ${assignment?.name || "Assignment"}`;
+  return `${getSubmissionClassName(submission)} / ${getSubmissionAssignmentName(submission)}`;
+}
+
+function getSubmissionClassName(submission) {
+  return submission.classNameSnapshot || getClass(submission.classId)?.name || "Class";
+}
+
+function getSubmissionAssignmentName(submission) {
+  return submission.assignmentNameSnapshot || getAssignment(submission.classId, submission.assignmentId)?.name || "Assignment";
+}
+
+function getSubmissionQuestionCount(submission) {
+  return (
+    submission.questionCountSnapshot ??
+    getAssignment(submission.classId, submission.assignmentId)?.questionCount ??
+    submission.questionFeedback.length
+  );
+}
+
+function ensureSubmissionSnapshots() {
+  state.submissions.forEach((submission) => {
+    const classRecord = getClass(submission.classId);
+    const assignment = getAssignment(submission.classId, submission.assignmentId);
+    submission.classNameSnapshot = submission.classNameSnapshot || classRecord?.name || "Class";
+    submission.assignmentNameSnapshot = submission.assignmentNameSnapshot || assignment?.name || "Assignment";
+    submission.questionCountSnapshot =
+      submission.questionCountSnapshot ?? assignment?.questionCount ?? submission.questionFeedback.length;
+  });
 }
 
 function getStudent(id) {
