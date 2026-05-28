@@ -10,13 +10,13 @@
   <div class="shell">
     <header class="hero">
       <div class="brand-block">
-        <div class="brand-mark" aria-hidden="true">
-          <span class="brand-cross"></span>
-          <span class="brand-book"></span>
-        </div>
+        <img
+          class="brand-logo"
+          src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
+          alt="PFC Prisoners For Christ"
+        >
         <div>
-          <p class="eyebrow">Prisoners for Christ</p>
-          <h1>PFC - Bible Institute Grading System</h1>
+          <h1>Bible Institute Grading System</h1>
           <p class="hero-copy">
             A role-based workflow demo for class setup, paper uploads, volunteer grading, coach reporting, and program sponsorship.
           </p>
@@ -260,8 +260,19 @@
               <h3>Class builder</h3>
               <form id="class-form" class="stack-form">
                 <label>
-                  Class name
-                  <input id="class-name" type="text" required>
+                  Class
+                  <select id="class-select" required></select>
+                </label>
+                <div class="inline-form class-add-row">
+                  <label class="grow">
+                    Add new class
+                    <input id="new-class-name" type="text" placeholder="New class name">
+                  </label>
+                  <button type="button" id="add-class" class="secondary align-end">Add class</button>
+                </div>
+                <label>
+                  Class name (for rename)
+                  <input id="class-name" type="text" placeholder="Optional rename">
                 </label>
                 <label>
                   Assignment name
