@@ -1,5 +1,101 @@
 const languages = ["English", "Spanish", "French", "Portuguese", "Korean", "Tagalog"];
 
+const translationPhrasebook = {
+  Spanish: {
+    English: {
+      sentences: {
+        "mi respuesta manuscrita explica cómo dios me ha dado esperanza mientras estudio la biblia.":
+          "My handwritten response explains how God has given me hope while I study the Bible.",
+        "escribí sobre juan 3:16 y cómo entiendo el sacrificio de jesús.":
+          "I wrote about John 3:16 and how I understand Jesus' sacrifice.",
+        "compartí una oración personal y los pasos que estoy tomando para seguir a cristo.":
+          "I shared a personal prayer and the steps I am taking to follow Christ."
+      },
+      words: {
+        mi: "my",
+        respuesta: "response",
+        manuscrita: "handwritten",
+        explica: "explains",
+        cómo: "how",
+        dios: "God",
+        me: "me",
+        ha: "has",
+        dado: "given",
+        esperanza: "hope",
+        mientras: "while",
+        estudio: "study",
+        la: "the",
+        biblia: "Bible",
+        escribí: "I wrote",
+        sobre: "about",
+        y: "and",
+        entiendo: "understand",
+        el: "the",
+        sacrificio: "sacrifice",
+        de: "of",
+        jesús: "Jesus",
+        compartí: "I shared",
+        una: "a",
+        oración: "prayer",
+        personal: "personal",
+        los: "the",
+        pasos: "steps",
+        estoy: "am",
+        tomando: "taking",
+        para: "to",
+        seguir: "follow",
+        a: "to",
+        cristo: "Christ"
+      }
+    }
+  },
+  English: {
+    Spanish: {
+      sentences: {
+        "you clearly described the main point and stayed grounded in scripture.":
+          "Describiste claramente el punto principal y te mantuviste firme en las Escrituras.",
+        "excellent reflection on salvation and how it applies in daily life.":
+          "Excelente reflexión sobre la salvación y cómo se aplica en la vida diaria.",
+        "your prayer response was thoughtful and complete.":
+          "Tu respuesta de oración fue reflexiva y completa.",
+        "thank you for the honesty in your responses and the scripture references you included.":
+          "Gracias por la honestidad en tus respuestas y las referencias bíblicas que incluiste."
+      },
+      words: {
+        thank: "gracias",
+        you: "tú",
+        for: "por",
+        the: "el",
+        honesty: "honestidad",
+        in: "en",
+        your: "tu",
+        responses: "respuestas",
+        and: "y",
+        scripture: "escritura",
+        references: "referencias",
+        included: "incluiste",
+        excellent: "excelente",
+        reflection: "reflexión",
+        on: "sobre",
+        salvation: "salvación",
+        how: "cómo",
+        it: "esto",
+        applies: "se aplica",
+        daily: "diaria",
+        life: "vida",
+        prayer: "oración",
+        was: "fue",
+        thoughtful: "reflexiva",
+        complete: "completa"
+      }
+    }
+  }
+};
+
+// Supports basic Latin plus Latin-1/Extended-A characters used in demo phrasebook entries.
+const translationTokenPattern = /[A-Za-z\u00C0-\u017F']+/g;
+const translationNormalizePattern = /[^a-z0-9\u00C0-\u017F']+/g;
+
 const state = {
   activeRole: "coach",
   preferredLanguage: "English",
@@ -1052,7 +1148,44 @@ function translateText(text, sourceLanguage, targetLanguage) {
     return text;
   }
 
-  return `[Demo ${targetLanguage} translation from ${sourceLanguage}] ${text}`;
+  const phrasebook = translationPhrasebook[sourceLanguage]?.[targetLanguage];
+  if (!phrasebook) {
+    console.warn(`No phrasebook available for ${sourceLanguage} → ${targetLanguage}.`);
+    return text;
+  }
+
+  const normalizedInput = normalizeTranslationLookup(text);
+  for (const [sentence, translation] of Object.entries(phrasebook.sentences)) {
+    if (normalizeTranslationLookup(sentence) === normalizedInput) {
+      return translation;
+    }
+  }
+
+  return text.replace(translationTokenPattern, (token) => {
+    const translated = phrasebook.words[token.toLowerCase()];
+    if (!translated) {
+      return token;
+    }
+
+    const lettersOnly = token.replace(/[^A-Za-z\u00C0-\u017F]/g, "");
+    if (lettersOnly.length > 1 && lettersOnly === lettersOnly.toUpperCase()) {
+      return translated.toUpperCase();
+    }
+
+    if (token[0] === token[0].toUpperCase()) {
+      return capitalize(translated);
+    }
+
+    return translated;
+  });
+}
+
+function normalizeTranslationLookup(text) {
+  return text
+    .toLowerCase()
+    .replace(translationNormalizePattern, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 function formatDate(value) {
