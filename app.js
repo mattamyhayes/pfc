@@ -1082,22 +1082,14 @@ function toast(message) {
   }, 2400);
 }
 
-// Home page persona selection
-function initHomePage() {
-  const homePage = document.querySelector("#home-page");
-  const appShell = document.querySelector("#app-shell");
-  const personaBtns = document.querySelectorAll(".persona-btn");
-
-  personaBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const persona = btn.dataset.persona;
-      state.activeRole = persona;
-      homePage.classList.add("hidden");
-      appShell.classList.remove("hidden");
-      renderRolePanels();
-    });
-  });
+// Read role from URL query parameter
+function initFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get("role");
+  if (role && ["coach", "volunteer", "sponsor", "admin"].includes(role)) {
+    state.activeRole = role;
+  }
 }
 
-initHomePage();
+initFromUrl();
 init();
