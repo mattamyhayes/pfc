@@ -276,112 +276,127 @@ const elements = {
 
 function init() {
   ensureSubmissionSnapshots();
-  fillLanguageOptions(elements.preferredLanguage, state.preferredLanguage);
-  fillLanguageOptions(elements.uploadLanguage, "English");
+  if (elements.preferredLanguage) fillLanguageOptions(elements.preferredLanguage, state.preferredLanguage);
+  if (elements.uploadLanguage) fillLanguageOptions(elements.uploadLanguage, "English");
   bindEvents();
   render();
 }
 
 function bindEvents() {
-  elements.preferredLanguage.addEventListener("change", (event) => {
-    state.preferredLanguage = event.target.value;
-    renderVolunteerReview();
-  });
-
-  elements.activeCoach.addEventListener("change", (event) => {
-    state.activeCoachId = event.target.value;
-    renderCoachReport();
-  });
-
-  elements.activeVolunteer.addEventListener("change", (event) => {
-    state.activeVolunteerId = event.target.value;
-    state.selectedSubmissionId = null;
-    state.translationToggled = false;
-    renderVolunteerQueue();
-    renderVolunteerReview();
-  });
-
-  elements.roleLinks.forEach((button) => {
-    button.addEventListener("click", () => {
-      state.activeRole = button.dataset.roleLink;
-      renderRolePanels();
+  if (elements.preferredLanguage) {
+    elements.preferredLanguage.addEventListener("change", (event) => {
+      state.preferredLanguage = event.target.value;
+      renderVolunteerReview();
     });
-  });
+  }
 
-  elements.uploadStudent.addEventListener("change", syncUploadVolunteerSelection);
-  elements.uploadClass.addEventListener("change", renderAssignmentOptions);
-
-  elements.uploadForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    createSubmission();
-  });
-
-  elements.translatePaper.addEventListener("click", () => {
-    state.translationToggled = !state.translationToggled;
-    renderVolunteerReview();
-  });
-  elements.generatePdf.addEventListener("click", generatePdfPacket);
-
-  elements.institutionForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const name = elements.institutionName.value.trim();
-    if (!name) {
-      return;
-    }
-
-    if (!state.institutions.includes(name)) {
-      state.institutions.push(name);
-      elements.institutionName.value = "";
-      toast(`Institution added: ${name}`);
-      renderSponsorForms();
-    } else {
-      toast("Institution already exists.");
-    }
-  });
-
-  elements.userForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const role = elements.userRole.value;
-    const name = elements.userName.value.trim();
-    const email = elements.userEmail.value.trim();
-    const password = elements.userPassword.value.trim();
-
-    if (!name || !email || !password) {
-      return;
-    }
-
-    const collection = role === "coach" ? state.users.coaches : state.users.volunteers;
-    collection.push({
-      id: `${role}-${Date.now()}`,
-      name,
-      email,
-      password
+  if (elements.activeCoach) {
+    elements.activeCoach.addEventListener("change", (event) => {
+      state.activeCoachId = event.target.value;
+      renderCoachReport();
     });
+  }
 
-    queueEmail(email, `Welcome to PFC as a ${capitalize(role)}`);
-    elements.userForm.reset();
-    toast(`${capitalize(role)} created.`);
-    render();
-  });
+  if (elements.activeVolunteer) {
+    elements.activeVolunteer.addEventListener("change", (event) => {
+      state.activeVolunteerId = event.target.value;
+      state.selectedSubmissionId = null;
+      state.translationToggled = false;
+      renderVolunteerQueue();
+      renderVolunteerReview();
+    });
+  }
 
-  elements.generateStudentId.addEventListener("click", () => {
-    elements.studentIdentifier.value = nextStudentIdentifier();
-  });
+  if (elements.uploadStudent) elements.uploadStudent.addEventListener("change", syncUploadVolunteerSelection);
+  if (elements.uploadClass) elements.uploadClass.addEventListener("change", renderAssignmentOptions);
 
-  elements.studentForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    upsertStudent();
-  });
+  if (elements.uploadForm) {
+    elements.uploadForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      createSubmission();
+    });
+  }
 
-  elements.classForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addAssignmentToClass();
-  });
+  if (elements.translatePaper) {
+    elements.translatePaper.addEventListener("click", () => {
+      state.translationToggled = !state.translationToggled;
+      renderVolunteerReview();
+    });
+  }
+  if (elements.generatePdf) elements.generatePdf.addEventListener("click", generatePdfPacket);
 
-  elements.addClassForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addClassFromBuilder();
-  });
+  if (elements.institutionForm) {
+    elements.institutionForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = elements.institutionName.value.trim();
+      if (!name) {
+        return;
+      }
+
+      if (!state.institutions.includes(name)) {
+        state.institutions.push(name);
+        elements.institutionName.value = "";
+        toast(`Institution added: ${name}`);
+        renderSponsorForms();
+      } else {
+        toast("Institution already exists.");
+      }
+    });
+  }
+
+  if (elements.userForm) {
+    elements.userForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const role = elements.userRole.value;
+      const name = elements.userName.value.trim();
+      const email = elements.userEmail.value.trim();
+      const password = elements.userPassword.value.trim();
+
+      if (!name || !email || !password) {
+        return;
+      }
+
+      const collection = role === "coach" ? state.users.coaches : state.users.volunteers;
+      collection.push({
+        id: `${role}-${Date.now()}`,
+        name,
+        email,
+        password
+      });
+
+      queueEmail(email, `Welcome to PFC as a ${capitalize(role)}`);
+      elements.userForm.reset();
+      toast(`${capitalize(role)} created.`);
+      render();
+    });
+  }
+
+  if (elements.generateStudentId) {
+    elements.generateStudentId.addEventListener("click", () => {
+      elements.studentIdentifier.value = nextStudentIdentifier();
+    });
+  }
+
+  if (elements.studentForm) {
+    elements.studentForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      upsertStudent();
+    });
+  }
+
+  if (elements.classForm) {
+    elements.classForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addAssignmentToClass();
+    });
+  }
+
+  if (elements.addClassForm) {
+    elements.addClassForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addClassFromBuilder();
+    });
+  }
 }
 
 function render() {
@@ -410,6 +425,7 @@ function renderRolePanels() {
 }
 
 function renderSummary() {
+  if (!elements.summaryStats) return;
   const pendingCount = state.submissions.filter((submission) => submission.status !== "complete").length;
   const completeCount = state.submissions.filter((submission) => submission.status === "complete").length;
   const cards = [
@@ -425,6 +441,7 @@ function renderSummary() {
 }
 
 function renderEmailLog() {
+  if (!elements.emailLog) return;
   elements.emailLog.innerHTML = state.emailLog
     .slice()
     .reverse()
@@ -441,6 +458,7 @@ function renderEmailLog() {
 }
 
 function renderCoachInputs() {
+  if (!elements.uploadStudent) return;
   const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
   const coachStudents = state.students.filter((student) => student.coachId === coach.id);
 
@@ -467,20 +485,26 @@ function renderCoachInputs() {
 }
 
 function renderSessionSelectors() {
-  populateSelect(
-    elements.activeCoach,
-    state.users.coaches.map((coach) => ({ value: coach.id, label: `${coach.name} (${coach.email})` }))
-  );
-  elements.activeCoach.value = state.activeCoachId;
+  if (!elements.activeCoach && !elements.activeVolunteer) return;
+  if (elements.activeCoach) {
+    populateSelect(
+      elements.activeCoach,
+      state.users.coaches.map((coach) => ({ value: coach.id, label: `${coach.name} (${coach.email})` }))
+    );
+    elements.activeCoach.value = state.activeCoachId;
+  }
 
-  populateSelect(
-    elements.activeVolunteer,
-    state.users.volunteers.map((volunteer) => ({ value: volunteer.id, label: `${volunteer.name} (${volunteer.email})` }))
-  );
-  elements.activeVolunteer.value = state.activeVolunteerId;
+  if (elements.activeVolunteer) {
+    populateSelect(
+      elements.activeVolunteer,
+      state.users.volunteers.map((volunteer) => ({ value: volunteer.id, label: `${volunteer.name} (${volunteer.email})` }))
+    );
+    elements.activeVolunteer.value = state.activeVolunteerId;
+  }
 }
 
 function renderAssignmentOptions() {
+  if (!elements.uploadClass || !elements.uploadAssignment) return;
   const classRecord = getClass(elements.uploadClass.value) || state.classes[0];
   if (!classRecord) {
     elements.uploadAssignment.innerHTML = "";
@@ -497,6 +521,7 @@ function renderAssignmentOptions() {
 }
 
 function syncUploadVolunteerSelection() {
+  if (!elements.uploadStudent || !elements.uploadVolunteer) return;
   const student = getStudent(elements.uploadStudent.value);
   if (student?.defaultVolunteerId) {
     elements.uploadVolunteer.value = student.defaultVolunteerId;
@@ -552,6 +577,7 @@ function createSubmission() {
 }
 
 function renderCoachReport() {
+  if (!elements.coachReport) return;
   const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
   const rows = state.students
     .filter((student) => student.coachId === coach.id)
@@ -580,6 +606,7 @@ function renderCoachReport() {
 }
 
 function renderVolunteerQueue() {
+  if (!elements.volunteerQueue) return;
   const volunteer = getVolunteer(state.activeVolunteerId) || state.users.volunteers[0];
   const assigned = state.submissions
     .filter((submission) => submission.volunteerId === volunteer.id)
@@ -620,6 +647,7 @@ function renderVolunteerQueue() {
 }
 
 function renderVolunteerReview() {
+  if (!elements.reviewPanel) return;
   const submission = state.submissions.find((item) => item.id === state.selectedSubmissionId);
   if (!submission) {
     elements.reviewEmpty.classList.remove("hidden");
@@ -818,6 +846,7 @@ function generatePdfPacket() {
 }
 
 function renderSponsorForms() {
+  if (!elements.studentInstitution) return;
   populateSelect(
     elements.studentInstitution,
     state.institutions.map((item) => ({ value: item, label: item }))
@@ -830,6 +859,7 @@ function renderSponsorForms() {
 }
 
 function renderStudents() {
+  if (!elements.studentTable) return;
   elements.studentTable.innerHTML = state.students
     .map((student) => {
       const coach = getCoach(student.coachId);
@@ -865,6 +895,7 @@ function renderStudents() {
 }
 
 function renderClassBuilderOptions() {
+  if (!elements.classSelect) return;
   populateSelect(
     elements.classSelect,
     state.classes.map((classRecord) => ({ value: classRecord.id, label: classRecord.name }))
@@ -920,6 +951,7 @@ function upsertStudent() {
 }
 
 function renderClassCatalog() {
+  if (!elements.classCatalog) return;
   elements.classCatalog.innerHTML = state.classes
     .map(
       (classRecord) => `
@@ -1034,6 +1066,7 @@ function addClassFromBuilder() {
 }
 
 function populateSelect(element, options) {
+  if (!element) return;
   const currentValue = element.value;
   element.innerHTML = options.map((option) => `<option value="${option.value}">${option.label}</option>`).join("");
   if (options.some((option) => option.value === currentValue)) {
@@ -1042,6 +1075,7 @@ function populateSelect(element, options) {
 }
 
 function fillLanguageOptions(element, selected) {
+  if (!element) return;
   populateSelect(
     element,
     languages.map((language) => ({ value: language, label: language }))
@@ -1215,6 +1249,7 @@ function escapeHtml(value) {
 }
 
 function toast(message) {
+  if (!elements.toast) return;
   elements.toast.textContent = message;
   elements.toast.classList.remove("hidden");
   window.clearTimeout(toast.timeoutId);
@@ -1223,12 +1258,19 @@ function toast(message) {
   }, 2400);
 }
 
-// Read role from URL query parameter
+// Read role from URL query parameter or page filename
 function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const role = params.get("role");
   if (role && ["coach", "volunteer", "sponsor", "admin"].includes(role)) {
     state.activeRole = role;
+    return;
+  }
+
+  // Detect role from page filename (e.g., coach.html, volunteer.html)
+  const page = window.location.pathname.split("/").pop().replace(".html", "");
+  if (["coach", "volunteer", "sponsor", "admin"].includes(page)) {
+    state.activeRole = page;
   }
 }
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PFC - Volunteer</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- App Shell -->
+  <div id="app-shell" class="shell">
+    <header class="hero">
+      <div class="brand-block">
+        <img
+          class="brand-logo"
+          src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
+          alt="PFC Prisoners For Christ"
+        >
+        <h1>Bible Institute Grading System</h1>
+      </div>
+      <div class="hero-actions">
+        <div class="preferences">
+          <label for="preferred-language">Language</label>
+          <select id="preferred-language"></select>
+        </div>
+      </div>
+    </header>
+
+    <nav class="role-tabs" aria-label="Switch demo role">
+      <a href="./coach.html" class="tab" data-role-link="coach">Coach</a>
+      <a href="./volunteer.html" class="tab active" data-role-link="volunteer">Volunteer</a>
+      <a href="./sponsor.html" class="tab" data-role-link="sponsor">Program Sponsor</a>
+      <a href="./admin.html" class="tab" data-role-link="admin">Admin</a>
+    </nav>
+
+    <main class="main-content">
+      <!-- Volunteer Panel -->
+      <section class="role-panel active" data-role-panel="volunteer">
+        <div class="panel-header">
+          <h2>Review &amp; Grade Papers</h2>
+          <label class="session-select">
+            Signed in as
+            <select id="active-volunteer"></select>
+          </label>
+        </div>
+
+        <div class="content-grid">
+          <section class="card">
+            <h3>Assigned Papers</h3>
+            <div id="volunteer-queue" class="card-list"></div>
+          </section>
+
+          <section class="card">
+            <div id="review-empty" class="empty-state">
+              Select an assignment to review.
+            </div>
+            <div id="review-panel" class="review-panel hidden">
+              <div class="review-header">
+                <div>
+                  <p class="eyebrow" id="review-meta"></p>
+                  <h3 id="review-title"></h3>
+                </div>
+                <div class="button-row">
+                  <button type="button" id="translate-paper" class="secondary">Translate paper</button>
+                  <button type="button" id="generate-pdf" class="secondary" disabled>Generate PDF packet</button>
+                </div>
+              </div>
+              <div class="paper-preview">
+                <p><strong>Uploaded file:</strong> <span id="review-file"></span></p>
+                <p><strong>Original language:</strong> <span id="review-language"></span></p>
+              </div>
+              <form id="review-form" class="form"></form>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Summary & Activity (collapsed at bottom) -->
+      <details class="activity-drawer">
+        <summary>Activity Log &amp; Stats</summary>
+        <div class="drawer-content">
+          <section class="card">
+            <h3>Overview</h3>
+            <div class="stats" id="summary-stats"></div>
+          </section>
+          <section class="card">
+            <h3>Email Activity</h3>
+            <ul class="activity-list" id="email-log"></ul>
+          </section>
+        </div>
+      </details>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
