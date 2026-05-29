@@ -6,7 +6,7 @@ const state = {
   activeCoachId: "coach-1",
   activeVolunteerId: "volunteer-1",
   selectedSubmissionId: null,
-  showTranslatedPaper: false,
+  translationToggled: false,
   institutions: [
     "Monroe Correctional Complex",
     "Washington Corrections Center",
@@ -200,7 +200,7 @@ function bindEvents() {
   elements.activeVolunteer.addEventListener("change", (event) => {
     state.activeVolunteerId = event.target.value;
     state.selectedSubmissionId = null;
-    state.showTranslatedPaper = false;
+    state.translationToggled = false;
     renderVolunteerQueue();
     renderVolunteerReview();
   });
@@ -221,7 +221,7 @@ function bindEvents() {
   });
 
   elements.translatePaper.addEventListener("click", () => {
-    state.showTranslatedPaper = !state.showTranslatedPaper;
+    state.translationToggled = !state.translationToggled;
     renderVolunteerReview();
   });
   elements.generatePdf.addEventListener("click", generatePdfPacket);
@@ -517,7 +517,7 @@ function renderVolunteerQueue() {
   elements.volunteerQueue.querySelectorAll("[data-open-review]").forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedSubmissionId = button.dataset.openReview;
-      state.showTranslatedPaper = false;
+      state.translationToggled = false;
       renderVolunteerReview();
     });
   });
@@ -534,8 +534,11 @@ function renderVolunteerReview() {
   const student = getStudent(submission.studentId);
   const targetLanguage = state.preferredLanguage;
   const needsTranslation = submission.language !== targetLanguage;
-  // Auto-apply translation when preferred language differs; button toggles it back off/on.
-  const showTranslated = needsTranslation ? !state.showTranslatedPaper : state.showTranslatedPaper;
+  // When translation is needed it is shown automatically (auto-apply for all questions).
+  // state.translationToggled is flipped each time the user clicks the button:
+  //   • needsTranslation=true  → default showTranslated=true; toggle hides it
+  //   • needsTranslation=false → default showTranslated=false; toggle shows it
+  const showTranslated = needsTranslation ? !state.translationToggled : state.translationToggled;
 
   elements.reviewEmpty.classList.add("hidden");
   elements.reviewPanel.classList.remove("hidden");
