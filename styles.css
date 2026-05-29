@@ -661,6 +661,8 @@ p {
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .persona-btn:hover {
