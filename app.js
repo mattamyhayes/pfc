@@ -533,7 +533,9 @@ function renderVolunteerReview() {
 
   const student = getStudent(submission.studentId);
   const targetLanguage = state.preferredLanguage;
-  const showTranslated = state.showTranslatedPaper || submission.language === targetLanguage;
+  const needsTranslation = submission.language !== targetLanguage;
+  // Auto-apply translation when preferred language differs; button toggles it back off/on.
+  const showTranslated = needsTranslation ? !state.showTranslatedPaper : state.showTranslatedPaper;
 
   elements.reviewEmpty.classList.add("hidden");
   elements.reviewPanel.classList.remove("hidden");
@@ -542,7 +544,8 @@ function renderVolunteerReview() {
   elements.reviewFile.textContent = submission.fileName;
   elements.reviewLanguage.textContent = submission.language;
   elements.generatePdf.disabled = submission.status !== "complete";
-  elements.translatePaper.textContent = showTranslated ? "Hide translated view" : "Translate paper";
+  elements.translatePaper.classList.toggle("hidden", !needsTranslation);
+  elements.translatePaper.textContent = showTranslated ? "Hide translation" : "Show translation";
 
   elements.reviewForm.innerHTML = `
     <label>
@@ -577,7 +580,9 @@ function renderVolunteerReview() {
                     <div class="translated-answer">${escapeHtml(translated)}</div>
                   </div>
                 `
-                : `<div class="helper-text">Click "Translate paper" to view the response in ${targetLanguage}.</div>`
+                : needsTranslation
+                  ? `<div class="helper-text">Translation hidden. Click "Show translation" to view the response in ${targetLanguage}.</div>`
+                  : ""
             }
             <label>
               Feedback
