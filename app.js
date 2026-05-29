@@ -6,7 +6,7 @@ const state = {
   activeCoachId: "coach-1",
   activeVolunteerId: "volunteer-1",
   selectedSubmissionId: null,
-  showTranslatedPaper: false,
+  translationToggled: false,
   institutions: [
     "Monroe Correctional Complex",
     "Washington Corrections Center",
@@ -200,7 +200,7 @@ function bindEvents() {
   elements.activeVolunteer.addEventListener("change", (event) => {
     state.activeVolunteerId = event.target.value;
     state.selectedSubmissionId = null;
-    state.showTranslatedPaper = false;
+    state.translationToggled = false;
     renderVolunteerQueue();
     renderVolunteerReview();
   });
@@ -221,7 +221,7 @@ function bindEvents() {
   });
 
   elements.translatePaper.addEventListener("click", () => {
-    state.showTranslatedPaper = !state.showTranslatedPaper;
+    state.translationToggled = !state.translationToggled;
     renderVolunteerReview();
   });
   elements.generatePdf.addEventListener("click", generatePdfPacket);
@@ -517,7 +517,7 @@ function renderVolunteerQueue() {
   elements.volunteerQueue.querySelectorAll("[data-open-review]").forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedSubmissionId = button.dataset.openReview;
-      state.showTranslatedPaper = false;
+      state.translationToggled = false;
       renderVolunteerReview();
     });
   });
@@ -533,7 +533,12 @@ function renderVolunteerReview() {
 
   const student = getStudent(submission.studentId);
   const targetLanguage = state.preferredLanguage;
-  const showTranslated = state.showTranslatedPaper || submission.language === targetLanguage;
+  const needsTranslation = submission.language !== targetLanguage;
+  // When translation is needed it is shown automatically (auto-apply for all questions).
+  // state.translationToggled is flipped each time the user clicks the button:
+  //   • needsTranslation=true  → default showTranslated=true; toggle hides it
+  //   • needsTranslation=false → default showTranslated=false; toggle shows it
+  const showTranslated = needsTranslation ? !state.translationToggled : state.translationToggled;
 
   elements.reviewEmpty.classList.add("hidden");
   elements.reviewPanel.classList.remove("hidden");
@@ -542,7 +547,8 @@ function renderVolunteerReview() {
   elements.reviewFile.textContent = submission.fileName;
   elements.reviewLanguage.textContent = submission.language;
   elements.generatePdf.disabled = submission.status !== "complete";
-  elements.translatePaper.textContent = showTranslated ? "Hide translated view" : "Translate paper";
+  elements.translatePaper.classList.toggle("hidden", !needsTranslation);
+  elements.translatePaper.textContent = showTranslated ? "Hide translation" : "Show translation";
 
   elements.reviewForm.innerHTML = `
     <label>
@@ -577,7 +583,9 @@ function renderVolunteerReview() {
                     <div class="translated-answer">${escapeHtml(translated)}</div>
                   </div>
                 `
-                : `<div class="helper-text">Click "Translate paper" to view the response in ${targetLanguage}.</div>`
+                : needsTranslation
+                  ? `<div class="helper-text">Translation hidden. Click "Show translation" to view the response in ${targetLanguage}.</div>`
+                  : ""
             }
             <label>
               Feedback
