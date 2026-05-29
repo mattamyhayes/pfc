@@ -583,6 +583,115 @@ p {
   font-size: 0.82rem;
 }
 
+/* Home / Login Page */
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, var(--charcoal) 0%, var(--charcoal-soft) 100%);
+}
+
+.home-container {
+  max-width: 900px;
+  width: 100%;
+}
+
+.home-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.home-logo {
+  width: 200px;
+  height: auto;
+  margin: 0 auto 16px;
+  display: block;
+}
+
+.home-title {
+  color: var(--white);
+  font-size: 1.6rem;
+  margin: 0 0 12px;
+}
+
+.home-description {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.home-login-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.home-login-form h2,
+.home-personas h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.home-login-note {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.persona-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--mist);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.persona-btn:hover {
+  border-color: var(--burgundy);
+  background: var(--white);
+  box-shadow: 0 4px 12px rgba(142, 35, 38, 0.12);
+  transform: translateY(-2px);
+}
+
+.persona-icon {
+  font-size: 1.8rem;
+}
+
+.persona-role {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+}
+
+.persona-name {
+  font-size: 0.8rem;
+  color: var(--burgundy);
+  font-weight: 600;
+}
+
+.persona-desc {
+  font-size: 0.75rem;
+  color: var(--slate);
+  line-height: 1.4;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .shell {
@@ -639,5 +748,17 @@ p {
 
   .drawer-content {
     grid-template-columns: 1fr;
+  }
+
+  .home-login-section {
+    grid-template-columns: 1fr;
+  }
+
+  .persona-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page {
+    padding: 24px 12px;
   }
 }

@@ -7,7 +7,76 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="shell">
+  <!-- Home / Login Page -->
+  <div id="home-page" class="home-page">
+    <div class="home-container">
+      <div class="home-header">
+        <img
+          class="home-logo"
+          src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
+          alt="PFC Prisoners For Christ"
+        >
+        <h1 class="home-title">Bible Institute Grading System</h1>
+        <p class="home-description">
+          A grading workflow tool for the Prisoners For Christ Bible Institute program.
+          Coaches upload student papers, volunteers review and grade assignments, and program
+          sponsors manage institutions and students — all in one place.
+        </p>
+      </div>
+
+      <div class="home-login-section">
+        <div class="home-login-form card">
+          <h2>Sign In</h2>
+          <form id="login-form" class="form" onsubmit="return false;">
+            <label>
+              Email
+              <input type="email" id="login-email" placeholder="Enter your email address" autocomplete="email">
+            </label>
+            <label>
+              Password
+              <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+            </label>
+            <button type="submit" class="primary" disabled>Sign In</button>
+          </form>
+          <p class="home-login-note muted">Login is not yet active. Use a demo persona below to explore the system.</p>
+        </div>
+
+        <div class="home-personas card">
+          <h2>Demo Login</h2>
+          <p class="muted">Select a persona to explore the system as that role:</p>
+          <div class="persona-grid">
+            <button type="button" class="persona-btn" data-persona="coach">
+              <span class="persona-icon">📋</span>
+              <span class="persona-role">Coach</span>
+              <span class="persona-name">Rachel Carter</span>
+              <span class="persona-desc">Upload papers & track student progress</span>
+            </button>
+            <button type="button" class="persona-btn" data-persona="volunteer">
+              <span class="persona-icon">✏️</span>
+              <span class="persona-role">Volunteer</span>
+              <span class="persona-name">Maria Lopez</span>
+              <span class="persona-desc">Review & grade assigned papers</span>
+            </button>
+            <button type="button" class="persona-btn" data-persona="sponsor">
+              <span class="persona-icon">🏛️</span>
+              <span class="persona-role">Program Sponsor</span>
+              <span class="persona-name">Administrator</span>
+              <span class="persona-desc">Manage institutions, students & users</span>
+            </button>
+            <button type="button" class="persona-btn" data-persona="admin">
+              <span class="persona-icon">⚙️</span>
+              <span class="persona-role">Admin</span>
+              <span class="persona-name">System Admin</span>
+              <span class="persona-desc">Configure classes & assignments</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App (hidden until persona selected) -->
+  <div id="app-shell" class="shell hidden">
     <header class="hero">
       <div class="brand-block">
         <img
