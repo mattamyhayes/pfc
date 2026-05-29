@@ -92,6 +92,10 @@ const translationPhrasebook = {
   }
 };
 
+// Supports basic Latin plus Latin-1/Extended-A characters used in demo phrasebook entries.
+const translationTokenPattern = /[A-Za-z\u00C0-\u017F']+/g;
+const translationNormalizePattern = /[^a-z0-9\u00C0-\u017F']+/g;
+
 const state = {
   activeRole: "coach",
   preferredLanguage: "English",
@@ -1146,21 +1150,25 @@ function translateText(text, sourceLanguage, targetLanguage) {
 
   const phrasebook = translationPhrasebook[sourceLanguage]?.[targetLanguage];
   if (!phrasebook) {
+    console.warn(`No phrasebook available for ${sourceLanguage} → ${targetLanguage}.`);
     return text;
   }
 
-  const sentenceMatch = phrasebook.sentences[normalizeTranslationLookup(text)];
-  if (sentenceMatch) {
-    return sentenceMatch;
+  const normalizedInput = normalizeTranslationLookup(text);
+  for (const [sentence, translation] of Object.entries(phrasebook.sentences)) {
+    if (normalizeTranslationLookup(sentence) === normalizedInput) {
+      return translation;
+    }
   }
 
-  return text.replace(/[A-Za-zÀ-ÖØ-öø-ÿ']+/g, (token) => {
+  return text.replace(translationTokenPattern, (token) => {
     const translated = phrasebook.words[token.toLowerCase()];
     if (!translated) {
       return token;
     }
 
-    if (token === token.toUpperCase()) {
+    const lettersOnly = token.replace(/[^A-Za-z\u00C0-\u017F]/g, "");
+    if (lettersOnly.length > 1 && lettersOnly === lettersOnly.toUpperCase()) {
       return translated.toUpperCase();
     }
 
@@ -1173,7 +1181,11 @@ function translateText(text, sourceLanguage, targetLanguage) {
 }
 
 function normalizeTranslationLookup(text) {
-  return text.trim().replace(/\s+/g, " ").toLowerCase();
+  return text
+    .toLowerCase()
+    .replace(translationNormalizePattern, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 function formatDate(value) {
