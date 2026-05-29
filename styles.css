@@ -126,6 +126,8 @@ textarea {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  text-decoration: none;
+  text-align: center;
 }
 
 .tab:hover {
