@@ -570,7 +570,7 @@ function bindEvents() {
       const email = elements.userEmail.value.trim();
       const password = elements.userPassword.value.trim();
 
-      if (!name || !email || !password) {
+      if (!name || !email || (!editId && !password)) {
         return;
       }
 
@@ -585,7 +585,9 @@ function bindEvents() {
         if (user) {
           user.name = name;
           user.email = email;
-          user.password = password;
+          if (password) {
+            user.password = password;
+          }
 
           if (role !== currentRole) {
             const from = currentRole === "coach" ? state.users.coaches : state.users.volunteers;
@@ -863,10 +865,12 @@ function renderCoachReport() {
   const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
   const rows = state.students
     .filter((student) => student.coachId === coach.id)
-    .map((student) => {
-      const pending = getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt");
-      if (!pending) return "";
-
+    .map((student) => ({
+      student,
+      pending: getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt")
+    }))
+    .filter((entry) => entry.pending)
+    .map(({ student, pending }) => {
       return `
         <tr>
           <td>${student.firstName} ${student.lastName}</td>
@@ -1275,6 +1279,10 @@ function resetUserForm() {
   if (!elements.userForm) return;
   elements.userForm.reset();
   if (elements.userEditId) elements.userEditId.value = "";
+  if (elements.userPassword) {
+    elements.userPassword.required = true;
+    elements.userPassword.placeholder = "";
+  }
   if (elements.userFormSubmit) elements.userFormSubmit.textContent = "Create User";
 }
 
@@ -1314,7 +1322,9 @@ function renderUsers() {
       elements.userRole.value = coach ? "coach" : "volunteer";
       elements.userName.value = user.name;
       elements.userEmail.value = user.email;
-      elements.userPassword.value = user.password;
+      elements.userPassword.value = "";
+      elements.userPassword.required = false;
+      elements.userPassword.placeholder = "Leave blank to keep current password";
       if (elements.userFormSubmit) elements.userFormSubmit.textContent = "Save User";
       switchSponsorSection("users");
       toast("User loaded for editing.");
