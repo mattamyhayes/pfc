@@ -136,6 +136,96 @@ const state = {
       institution: "Washington Corrections Center",
       coachId: "coach-1",
       defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-3",
+      identifier: "PFC-1003",
+      firstName: "Carlos",
+      lastName: "Mendez",
+      institution: "Coyote Ridge Corrections Center",
+      coachId: "coach-2",
+      defaultVolunteerId: "volunteer-1"
+    },
+    {
+      id: "student-4",
+      identifier: "PFC-1004",
+      firstName: "Ethan",
+      lastName: "Brooks",
+      institution: "Monroe Correctional Complex",
+      coachId: "coach-1",
+      defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-5",
+      identifier: "PFC-1005",
+      firstName: "Isaiah",
+      lastName: "Coleman",
+      institution: "Washington Corrections Center",
+      coachId: "coach-2",
+      defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-6",
+      identifier: "PFC-1006",
+      firstName: "Jerome",
+      lastName: "Parker",
+      institution: "Coyote Ridge Corrections Center",
+      coachId: "coach-1",
+      defaultVolunteerId: "volunteer-1"
+    },
+    {
+      id: "student-7",
+      identifier: "PFC-1007",
+      firstName: "Leon",
+      lastName: "Foster",
+      institution: "Monroe Correctional Complex",
+      coachId: "coach-2",
+      defaultVolunteerId: "volunteer-1"
+    },
+    {
+      id: "student-8",
+      identifier: "PFC-1008",
+      firstName: "Malik",
+      lastName: "Sutton",
+      institution: "Washington Corrections Center",
+      coachId: "coach-1",
+      defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-9",
+      identifier: "PFC-1009",
+      firstName: "Noah",
+      lastName: "Barnes",
+      institution: "Coyote Ridge Corrections Center",
+      coachId: "coach-2",
+      defaultVolunteerId: "volunteer-1"
+    },
+    {
+      id: "student-10",
+      identifier: "PFC-1010",
+      firstName: "Ramon",
+      lastName: "Diaz",
+      institution: "Monroe Correctional Complex",
+      coachId: "coach-1",
+      defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-11",
+      identifier: "PFC-1011",
+      firstName: "Samuel",
+      lastName: "Griffin",
+      institution: "Washington Corrections Center",
+      coachId: "coach-2",
+      defaultVolunteerId: "volunteer-2"
+    },
+    {
+      id: "student-12",
+      identifier: "PFC-1012",
+      firstName: "Victor",
+      lastName: "Hayes",
+      institution: "Coyote Ridge Corrections Center",
+      coachId: "coach-1",
+      defaultVolunteerId: "volunteer-1"
     }
   ],
   classes: [
@@ -218,7 +308,27 @@ const state = {
         { id: "assignment-39", name: "39 TBD", questionCount: 8 },
         { id: "assignment-40", name: "40 Answer to Prayer", questionCount: 8 },
         { id: "assignment-41", name: "41 Reasons for Answered Prayer", questionCount: 8 },
-        { id: "assignment-42", name: "42 Our own Personal Prayer Life", questionCount: 8 }
+        { id: "assignment-42", name: "42 Our own Personal Prayer Life", questionCount: 8 },
+        { id: "assignment-60", name: "60 Foundations of Prayer", questionCount: 8 },
+        { id: "assignment-61", name: "61 Praying with Scripture", questionCount: 8 },
+        { id: "assignment-62", name: "62 Confession and Repentance", questionCount: 8 },
+        { id: "assignment-63", name: "63 Intercessory Prayer", questionCount: 8 },
+        { id: "assignment-64", name: "64 Praying in Difficult Seasons", questionCount: 8 },
+        { id: "assignment-65", name: "65 Prayers of Thanksgiving", questionCount: 8 },
+        { id: "assignment-66", name: "66 Trusting God in Silence", questionCount: 8 },
+        { id: "assignment-67", name: "67 Prayer and Obedience", questionCount: 8 },
+        { id: "assignment-68", name: "68 Fasting and Prayer", questionCount: 8 },
+        { id: "assignment-69", name: "69 Growing a Daily Prayer Rhythm", questionCount: 8 },
+        { id: "assignment-70", name: "70 Psalms as Prayer", questionCount: 8 },
+        { id: "assignment-71", name: "71 Listening in Prayer", questionCount: 8 },
+        { id: "assignment-72", name: "72 Prayer in Community", questionCount: 8 },
+        { id: "assignment-73", name: "73 Healing Prayer", questionCount: 8 },
+        { id: "assignment-74", name: "74 Forgiveness in Prayer", questionCount: 8 },
+        { id: "assignment-75", name: "75 Praying for Enemies", questionCount: 8 },
+        { id: "assignment-76", name: "76 Prayer and Perseverance", questionCount: 8 },
+        { id: "assignment-77", name: "77 Seeking Wisdom Through Prayer", questionCount: 8 },
+        { id: "assignment-78", name: "78 Prayer and Spiritual Growth", questionCount: 8 },
+        { id: "assignment-79", name: "79 Testimony and Answered Prayer", questionCount: 8 }
       ]
     }
   ],
