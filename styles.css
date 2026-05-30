@@ -297,6 +297,194 @@ textarea {
 }
 
 /* Tables */
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--silver);
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggle-btn:hover {
+  background: var(--silver-strong);
+}
+
+.toggle-btn.active {
+  background: var(--burgundy);
+  color: var(--white);
+  border-color: var(--burgundy);
+}
+
+.sponsor-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sponsor-nav-btn {
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--silver);
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sponsor-nav-btn:hover {
+  background: var(--silver-strong);
+}
+
+.sponsor-nav-btn.active {
+  background: var(--burgundy);
+  color: var(--white);
+  border-color: var(--burgundy);
+}
+
+.directory-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.directory-search {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.directory-filter {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: var(--white);
+}
+
+.progress-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.progress-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.progress-card:hover {
+  border-color: var(--burgundy);
+  box-shadow: var(--shadow-sm);
+}
+
+.progress-card.active {
+  border-color: var(--burgundy);
+  background: rgba(142, 35, 38, 0.04);
+}
+
+.progress-card h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.progress-card .count {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--burgundy);
+}
+
+.progress-detail {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--mist);
+  display: none;
+}
+
+.progress-detail.visible {
+  display: block;
+}
+
+.progress-detail h4 {
+  margin: 0 0 12px;
+}
+
+.progress-detail ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.progress-detail li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.progress-detail li:last-child {
+  border-bottom: none;
+}
+
+.progress-assignment-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.progress-assignment-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--charcoal);
+  cursor: pointer;
+}
+
+.progress-assignment-btn.active,
+.progress-assignment-btn:hover {
+  border-color: var(--burgundy);
+}
+
+.progress-empty {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  color: var(--slate);
+  background: var(--mist);
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -322,6 +510,29 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: var(--mist);
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--burgundy);
+}
+
+.sortable.sort-asc::after {
+  content: " ▲";
+  font-size: 0.7em;
+}
+
+.sortable.sort-desc::after {
+  content: " ▼";
+  font-size: 0.7em;
+}
+
+.row-overdue {
+  background-color: #fef3c7;
 }
 
 /* Role Panels */
@@ -589,6 +800,21 @@ p {
 .catalog-actions button {
   padding: 6px 10px;
   font-size: 0.82rem;
+}
+
+.catalog-assignment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.catalog-assignment-text {
+  flex: 1;
+}
+
+.catalog-assignment-actions {
+  flex-shrink: 0;
 }
 
 /* Home / Login Page */

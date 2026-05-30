@@ -40,8 +40,16 @@
           <h2>Manage Institutions &amp; Students</h2>
         </div>
 
-        <div class="content-grid">
-          <section class="card">
+        <div class="sponsor-nav">
+          <button type="button" class="sponsor-nav-btn active" data-sponsor-section="institutions">Institutions</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="users">Users</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="students">Students</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="directory">Student Directory</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="progress">Class Progress</button>
+        </div>
+
+        <div class="sponsor-sections">
+          <section class="card sponsor-section" id="sponsor-section-institutions">
             <h3>Add Institution</h3>
             <form id="institution-form" class="form form-inline">
               <label class="grow">
@@ -52,7 +60,7 @@
             </form>
           </section>
 
-          <section class="card">
+          <section class="card sponsor-section hidden" id="sponsor-section-users">
             <h3>Create User</h3>
             <form id="user-form" class="form">
               <label>
@@ -78,7 +86,7 @@
             </form>
           </section>
 
-          <section class="card">
+          <section class="card sponsor-section hidden" id="sponsor-section-students">
             <h3>Add Student</h3>
             <form id="student-form" class="form">
               <input id="student-edit-id" type="hidden">
@@ -111,40 +119,48 @@
             </form>
           </section>
 
-          <section class="card">
+          <section class="card sponsor-section hidden" id="sponsor-section-directory">
             <h3>Student Directory</h3>
+            <div class="directory-controls">
+              <input type="text" id="student-search" placeholder="Search students..." class="directory-search">
+              <select id="student-filter-institution" class="directory-filter">
+                <option value="">All Institutions</option>
+              </select>
+              <select id="student-filter-coach" class="directory-filter">
+                <option value="">All Coaches</option>
+              </select>
+            </div>
             <div class="table-wrap">
-              <table>
+              <table id="student-directory-table">
                 <thead>
                   <tr>
-                    <th>Student</th>
-                    <th>ID</th>
-                    <th>Institution</th>
-                    <th>Coach</th>
-                    <th></th>
+                    <th class="sortable" data-sort="name">Student</th>
+                    <th class="sortable" data-sort="id">ID</th>
+                    <th class="sortable" data-sort="institution">Institution</th>
+                    <th class="sortable" data-sort="coach">Coach</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="student-table"></tbody>
               </table>
             </div>
           </section>
+
+          <section class="card sponsor-section hidden" id="sponsor-section-progress">
+            <h3>Class Progress</h3>
+            <div class="progress-controls">
+              <select id="progress-class-filter">
+                <option value="">All Classes</option>
+              </select>
+              <select id="progress-assignment-filter">
+                <option value="">All Assignments</option>
+              </select>
+            </div>
+            <div id="class-progress-summary" class="progress-summary"></div>
+            <div id="class-progress-detail" class="progress-detail"></div>
+          </section>
         </div>
       </section>
-
-      <!-- Summary & Activity (collapsed at bottom) -->
-      <details class="activity-drawer">
-        <summary>Activity Log &amp; Stats</summary>
-        <div class="drawer-content">
-          <section class="card">
-            <h3>Overview</h3>
-            <div class="stats" id="summary-stats"></div>
-          </section>
-          <section class="card">
-            <h3>Email Activity</h3>
-            <ul class="activity-list" id="email-log"></ul>
-          </section>
-        </div>
-      </details>
     </main>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>

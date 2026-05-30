@@ -279,6 +279,13 @@ const state = {
   ]
 };
 
+let volunteerSortColumn = "days";
+let volunteerSortAsc = false;
+let sponsorActiveSection = "institutions";
+let studentSortColumn = "name";
+let studentSortAsc = true;
+let progressDetailSelection = null;
+
 const elements = {
   preferredLanguage: document.querySelector("#preferred-language"),
   roleLinks: document.querySelectorAll("[data-role-link]"),
@@ -294,8 +301,14 @@ const elements = {
   activeVolunteer: document.querySelector("#active-volunteer"),
   uploadForm: document.querySelector("#upload-form"),
   uploadFile: document.querySelector("#upload-file"),
+  coachViewPending: document.querySelector("#coach-view-pending"),
+  coachViewWaiting: document.querySelector("#coach-view-waiting"),
+  coachPendingView: document.querySelector("#coach-pending-view"),
+  coachWaitingView: document.querySelector("#coach-waiting-view"),
   coachReport: document.querySelector("#coach-report"),
+  coachWaitingReport: document.querySelector("#coach-waiting-report"),
   volunteerQueue: document.querySelector("#volunteer-queue"),
+  volunteerQueueTable: document.querySelector("#volunteer-queue-table"),
   reviewPanel: document.querySelector("#review-panel"),
   reviewEmpty: document.querySelector("#review-empty"),
   reviewMeta: document.querySelector("#review-meta"),
@@ -321,6 +334,16 @@ const elements = {
   generateStudentId: document.querySelector("#generate-student-id"),
   studentCoach: document.querySelector("#student-coach"),
   studentTable: document.querySelector("#student-table"),
+  sponsorNavBtns: document.querySelectorAll("[data-sponsor-section]"),
+  sponsorSections: document.querySelectorAll(".sponsor-section"),
+  studentSearch: document.querySelector("#student-search"),
+  studentFilterInstitution: document.querySelector("#student-filter-institution"),
+  studentFilterCoach: document.querySelector("#student-filter-coach"),
+  studentDirectoryTable: document.querySelector("#student-directory-table"),
+  progressClassFilter: document.querySelector("#progress-class-filter"),
+  progressAssignmentFilter: document.querySelector("#progress-assignment-filter"),
+  classProgressSummary: document.querySelector("#class-progress-summary"),
+  classProgressDetail: document.querySelector("#class-progress-detail"),
   classForm: document.querySelector("#class-form"),
   addClassForm: document.querySelector("#add-class-form"),
   classSelect: document.querySelector("#class-select"),
@@ -351,6 +374,19 @@ function bindEvents() {
     elements.activeCoach.addEventListener("change", (event) => {
       state.activeCoachId = event.target.value;
       renderCoachReport();
+      renderCoachWaitingReport();
+    });
+  }
+
+  if (elements.coachViewPending) {
+    elements.coachViewPending.addEventListener("click", () => {
+      setCoachView("pending");
+    });
+  }
+
+  if (elements.coachViewWaiting) {
+    elements.coachViewWaiting.addEventListener("click", () => {
+      setCoachView("waiting");
     });
   }
 
@@ -441,6 +477,36 @@ function bindEvents() {
     });
   }
 
+  if (elements.sponsorNavBtns.length) {
+    elements.sponsorNavBtns.forEach((button) => {
+      button.addEventListener("click", () => {
+        switchSponsorSection(button.dataset.sponsorSection);
+      });
+    });
+  }
+
+  if (elements.studentSearch) elements.studentSearch.addEventListener("input", renderStudents);
+  if (elements.studentFilterInstitution) elements.studentFilterInstitution.addEventListener("change", renderStudents);
+  if (elements.studentFilterCoach) elements.studentFilterCoach.addEventListener("change", renderStudents);
+
+  if (elements.studentDirectoryTable) {
+    elements.studentDirectoryTable.querySelectorAll("th.sortable").forEach((header) => {
+      header.addEventListener("click", () => {
+        const column = header.dataset.sort;
+        if (studentSortColumn === column) {
+          studentSortAsc = !studentSortAsc;
+        } else {
+          studentSortColumn = column;
+          studentSortAsc = true;
+        }
+        renderStudents();
+      });
+    });
+  }
+
+  if (elements.progressClassFilter) elements.progressClassFilter.addEventListener("change", renderClassProgress);
+  if (elements.progressAssignmentFilter) elements.progressAssignmentFilter.addEventListener("change", renderClassProgress);
+
   if (elements.classForm) {
     elements.classForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -462,11 +528,15 @@ function render() {
   renderEmailLog();
   renderCoachInputs();
   renderCoachReport();
+  renderCoachWaitingReport();
   renderSessionSelectors();
   renderVolunteerQueue();
   renderVolunteerReview();
+  renderSponsorSections();
   renderSponsorForms();
+  renderStudentDirectoryFilters();
   renderStudents();
+  renderClassProgress();
   renderClassBuilderOptions();
   renderClassCatalog();
 }
@@ -639,13 +709,8 @@ function renderCoachReport() {
   const rows = state.students
     .filter((student) => student.coachId === coach.id)
     .map((student) => {
-      const studentSubmissions = submissionsForStudent(student.id);
-      const pending = studentSubmissions
-        .filter((submission) => submission.status !== "complete")
-        .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-      const completed = studentSubmissions
-        .filter((submission) => submission.status === "complete")
-        .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0];
+      const pending = getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt");
+      const completed = getLatestStudentSubmission(student.id, (submission) => submission.status === "complete", "completedAt");
 
       return `
         <tr>
@@ -662,44 +727,137 @@ function renderCoachReport() {
   elements.coachReport.innerHTML = rows || `<tr><td colspan="5">No students assigned.</td></tr>`;
 }
 
-function renderVolunteerQueue() {
-  if (!elements.volunteerQueue) return;
-  const volunteer = getVolunteer(state.activeVolunteerId) || state.users.volunteers[0];
-  const assigned = state.submissions
-    .filter((submission) => submission.volunteerId === volunteer.id)
-    .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+function renderCoachWaitingReport() {
+  if (!elements.coachWaitingReport) return;
+  const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
+  const rows = state.students
+    .filter((student) => student.coachId === coach.id)
+    .filter((student) => !getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt"))
+    .map((student) => {
+      const completed = getLatestStudentSubmission(student.id, (submission) => submission.status === "complete", "completedAt");
 
-  elements.volunteerQueue.innerHTML = assigned
-    .map((submission) => {
-      const student = getStudent(submission.studentId);
       return `
-        <article class="queue-card">
-          <header>
-            <div>
-              <strong>${student.firstName} ${student.lastName}</strong>
-              <div class="muted">${describeSubmission(submission)}</div>
-            </div>
-            <span class="status-chip ${submission.status === "complete" ? "complete" : ""}">
-              ${submission.status === "complete" ? "Completed" : "Open"}
-            </span>
-          </header>
-          <div class="muted">
-            ${getSubmissionQuestionCount(submission)} questions · Uploaded ${formatDate(submission.uploadedAt)}
-          </div>
-          <button type="button" class="secondary" data-open-review="${submission.id}">
-            ${submission.status === "complete" ? "View packet" : "Review assignment"}
-          </button>
-        </article>
+        <tr>
+          <td>${student.firstName} ${student.lastName}</td>
+          <td>${nextAssignmentLabel(student)}</td>
+          <td>${completed ? `${daysSince(completed.completedAt)} days` : "No submissions yet"}</td>
+        </tr>
       `;
     })
     .join("");
 
+  elements.coachWaitingReport.innerHTML = rows || `<tr><td colspan="3">No students waiting for the next assignment.</td></tr>`;
+}
+
+function setCoachView(view) {
+  if (!elements.coachPendingView || !elements.coachWaitingView || !elements.coachViewPending || !elements.coachViewWaiting) {
+    return;
+  }
+
+  const showPending = view !== "waiting";
+  elements.coachPendingView.classList.toggle("hidden", !showPending);
+  elements.coachWaitingView.classList.toggle("hidden", showPending);
+  elements.coachViewPending.classList.toggle("active", showPending);
+  elements.coachViewWaiting.classList.toggle("active", !showPending);
+}
+
+function renderVolunteerQueue() {
+  if (!elements.volunteerQueue || !elements.volunteerQueueTable) return;
+
+  const volunteer = getVolunteer(state.activeVolunteerId) || state.users.volunteers[0];
+  const assigned = state.submissions
+    .filter((submission) => submission.volunteerId === volunteer.id)
+    .slice()
+    .sort((left, right) => {
+      const leftPendingRank = left.status === "complete" ? 1 : 0;
+      const rightPendingRank = right.status === "complete" ? 1 : 0;
+
+      if (volunteerSortColumn !== "status" && leftPendingRank !== rightPendingRank) {
+        return leftPendingRank - rightPendingRank;
+      }
+
+      const leftStudent = getStudent(left.studentId);
+      const rightStudent = getStudent(right.studentId);
+      const leftValues = {
+        student: `${leftStudent?.firstName || ""} ${leftStudent?.lastName || ""}`.trim().toLowerCase(),
+        assignment: describeSubmission(left).toLowerCase(),
+        date: new Date(left.uploadedAt).getTime(),
+        days: daysSince(left.uploadedAt),
+        status: left.status === "complete" ? "complete" : "pending"
+      };
+      const rightValues = {
+        student: `${rightStudent?.firstName || ""} ${rightStudent?.lastName || ""}`.trim().toLowerCase(),
+        assignment: describeSubmission(right).toLowerCase(),
+        date: new Date(right.uploadedAt).getTime(),
+        days: daysSince(right.uploadedAt),
+        status: right.status === "complete" ? "complete" : "pending"
+      };
+
+      let result = 0;
+      if (typeof leftValues[volunteerSortColumn] === "string") {
+        result = leftValues[volunteerSortColumn].localeCompare(rightValues[volunteerSortColumn]);
+      } else {
+        result = leftValues[volunteerSortColumn] - rightValues[volunteerSortColumn];
+      }
+
+      if (result === 0) {
+        result = new Date(left.uploadedAt).getTime() - new Date(right.uploadedAt).getTime();
+      }
+
+      return volunteerSortAsc ? result : -result;
+    });
+
+  elements.volunteerQueue.innerHTML = assigned.length
+    ? assigned
+        .map((submission) => {
+          const student = getStudent(submission.studentId);
+          const isComplete = submission.status === "complete";
+          const outstandingDays = daysSince(submission.uploadedAt);
+          const rowClass = !isComplete && outstandingDays > 7 ? ' class="row-overdue"' : "";
+          return `
+            <tr${rowClass}>
+              <td>${student ? `${student.firstName} ${student.lastName}` : "Unknown student"}</td>
+              <td>${describeSubmission(submission)}</td>
+              <td>${formatDate(submission.uploadedAt)}</td>
+              <td>${outstandingDays}</td>
+              <td>
+                <span class="status-chip ${isComplete ? "complete" : ""}">
+                  ${isComplete ? "Completed" : "Waiting for review"}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="secondary" data-open-review="${submission.id}">
+                  ${isComplete ? "View" : "Review"}
+                </button>
+              </td>
+            </tr>
+          `;
+        })
+        .join("")
+    : '<tr><td colspan="6">No papers assigned.</td></tr>';
+
+  elements.volunteerQueueTable.querySelectorAll("th.sortable").forEach((header) => {
+    const isActive = header.dataset.sort === volunteerSortColumn;
+    header.classList.toggle("sort-asc", isActive && volunteerSortAsc);
+    header.classList.toggle("sort-desc", isActive && !volunteerSortAsc);
+    header.onclick = () => {
+      const nextColumn = header.dataset.sort;
+      if (volunteerSortColumn === nextColumn) {
+        volunteerSortAsc = !volunteerSortAsc;
+      } else {
+        volunteerSortColumn = nextColumn;
+        volunteerSortAsc = nextColumn !== "days";
+      }
+      renderVolunteerQueue();
+    };
+  });
+
   elements.volunteerQueue.querySelectorAll("[data-open-review]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.onclick = () => {
       state.selectedSubmissionId = button.dataset.openReview;
       state.translationToggled = false;
       renderVolunteerReview();
-    });
+    };
   });
 }
 
@@ -902,6 +1060,27 @@ function generatePdfPacket() {
   packet.document.close();
 }
 
+function renderSponsorSections() {
+  if (!elements.sponsorNavBtns.length || !elements.sponsorSections.length) return;
+  const availableSections = Array.from(elements.sponsorNavBtns).map((button) => button.dataset.sponsorSection);
+  if (!availableSections.includes(sponsorActiveSection)) {
+    sponsorActiveSection = availableSections[0];
+  }
+
+  elements.sponsorNavBtns.forEach((button) => {
+    button.classList.toggle("active", button.dataset.sponsorSection === sponsorActiveSection);
+  });
+
+  elements.sponsorSections.forEach((section) => {
+    section.classList.toggle("hidden", section.id !== `sponsor-section-${sponsorActiveSection}`);
+  });
+}
+
+function switchSponsorSection(sectionName) {
+  sponsorActiveSection = sectionName || sponsorActiveSection;
+  renderSponsorSections();
+}
+
 function renderSponsorForms() {
   if (!elements.studentInstitution) return;
   populateSelect(
@@ -915,22 +1094,101 @@ function renderSponsorForms() {
   );
 }
 
+function renderStudentDirectoryFilters() {
+  if (!elements.studentFilterInstitution || !elements.studentFilterCoach) return;
+
+  const institutionValue = elements.studentFilterInstitution.value;
+  const coachValue = elements.studentFilterCoach.value;
+  const institutions = [...new Set(state.institutions.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const coaches = state.users.coaches
+    .map((coach) => ({ id: coach.id, name: coach.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  elements.studentFilterInstitution.innerHTML = [
+    '<option value="">All Institutions</option>',
+    ...institutions.map((institution) => `<option value="${escapeHtml(institution)}">${escapeHtml(institution)}</option>`)
+  ].join("");
+  if (institutions.includes(institutionValue)) {
+    elements.studentFilterInstitution.value = institutionValue;
+  }
+
+  elements.studentFilterCoach.innerHTML = [
+    '<option value="">All Coaches</option>',
+    ...coaches.map((coach) => `<option value="${coach.id}">${escapeHtml(coach.name)}</option>`)
+  ].join("");
+  if (coaches.some((coach) => coach.id === coachValue)) {
+    elements.studentFilterCoach.value = coachValue;
+  }
+}
+
 function renderStudents() {
   if (!elements.studentTable) return;
-  elements.studentTable.innerHTML = state.students
+
+  const search = elements.studentSearch?.value.trim().toLowerCase() || "";
+  const institutionFilter = elements.studentFilterInstitution?.value || "";
+  const coachFilter = elements.studentFilterCoach?.value || "";
+
+  const students = state.students
     .map((student) => {
       const coach = getCoach(student.coachId);
-      return `
-        <tr>
-          <td>${student.firstName} ${student.lastName}</td>
-          <td>${student.identifier}</td>
-          <td>${student.institution}</td>
-          <td>${coach?.name || ""}</td>
-          <td><button type="button" class="secondary" data-edit-student="${student.id}">Edit</button></td>
-        </tr>
-      `;
+      return {
+        ...student,
+        fullName: `${student.firstName} ${student.lastName}`,
+        coachName: coach?.name || ""
+      };
     })
-    .join("");
+    .filter((student) => {
+      const matchesSearch =
+        !search ||
+        [student.fullName, student.identifier, student.institution, student.coachName]
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
+      const matchesInstitution = !institutionFilter || student.institution === institutionFilter;
+      const matchesCoach = !coachFilter || student.coachId === coachFilter;
+      return matchesSearch && matchesInstitution && matchesCoach;
+    })
+    .sort((left, right) => {
+      const direction = studentSortAsc ? 1 : -1;
+      const leftValue =
+        studentSortColumn === "name"
+          ? left.fullName
+          : studentSortColumn === "id"
+            ? left.identifier
+            : studentSortColumn === "institution"
+              ? left.institution
+              : left.coachName;
+      const rightValue =
+        studentSortColumn === "name"
+          ? right.fullName
+          : studentSortColumn === "id"
+            ? right.identifier
+            : studentSortColumn === "institution"
+              ? right.institution
+              : right.coachName;
+      return leftValue.localeCompare(rightValue, undefined, { numeric: true, sensitivity: "base" }) * direction;
+    });
+
+  elements.studentTable.innerHTML = students.length
+    ? students
+        .map(
+          (student) => `
+            <tr>
+              <td>${escapeHtml(student.fullName)}</td>
+              <td>${escapeHtml(student.identifier)}</td>
+              <td>${escapeHtml(student.institution)}</td>
+              <td>${escapeHtml(student.coachName)}</td>
+              <td><button type="button" class="secondary" data-edit-student="${student.id}">Edit</button></td>
+            </tr>
+          `
+        )
+        .join("")
+    : '<tr><td colspan="5">No students match the current search and filters.</td></tr>';
+
+  elements.studentDirectoryTable?.querySelectorAll("th.sortable").forEach((header) => {
+    header.classList.toggle("sort-asc", header.dataset.sort === studentSortColumn && studentSortAsc);
+    header.classList.toggle("sort-desc", header.dataset.sort === studentSortColumn && !studentSortAsc);
+  });
 
   elements.studentTable.querySelectorAll("[data-edit-student]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -946,9 +1204,296 @@ function renderStudents() {
       elements.studentIdentifier.value = student.identifier;
       elements.studentIdentifier.disabled = true;
       elements.studentCoach.value = student.coachId;
+      switchSponsorSection("students");
       toast("Student loaded for editing. The ID stays locked after creation.");
     });
   });
+}
+
+function renderClassProgress() {
+  if (!elements.classProgressSummary || !elements.progressClassFilter || !elements.progressAssignmentFilter) return;
+
+  const classFilterValue = elements.progressClassFilter.value;
+  const phaseRecords = state.students.map(getStudentProgressPhase).filter(Boolean);
+  const availableClassIds = state.classes.map((classRecord) => classRecord.id);
+
+  elements.progressClassFilter.innerHTML = [
+    '<option value="">All Classes</option>',
+    ...state.classes.map((classRecord) => `<option value="${classRecord.id}">${escapeHtml(classRecord.name)}</option>`)
+  ].join("");
+  if (availableClassIds.includes(classFilterValue)) {
+    elements.progressClassFilter.value = classFilterValue;
+  }
+
+  const activeClassFilter = elements.progressClassFilter.value || "";
+  const assignmentCandidates = (activeClassFilter
+    ? phaseRecords.filter((record) => record.classId === activeClassFilter)
+    : phaseRecords
+  ).reduce((items, record) => {
+    if (!items.some((item) => item.assignmentId === record.assignmentId && item.classId === record.classId)) {
+      items.push({
+        classId: record.classId,
+        assignmentId: record.assignmentId,
+        assignmentName: record.assignmentName
+      });
+    }
+    return items;
+  }, []);
+
+  assignmentCandidates.sort((left, right) => {
+    if (left.classId !== right.classId) {
+      const leftClass = getClass(left.classId)?.name || "";
+      const rightClass = getClass(right.classId)?.name || "";
+      return leftClass.localeCompare(rightClass);
+    }
+    return compareProgressAssignments(left.classId, left.assignmentId, left.assignmentName, right.assignmentId, right.assignmentName);
+  });
+
+  const assignmentFilterValue = elements.progressAssignmentFilter.value;
+  elements.progressAssignmentFilter.innerHTML = [
+    '<option value="">All Assignments</option>',
+    ...assignmentCandidates.map((assignment) => `<option value="${assignment.assignmentId}">${escapeHtml(assignment.assignmentName)}</option>`)
+  ].join("");
+  if (assignmentCandidates.some((assignment) => assignment.assignmentId === assignmentFilterValue)) {
+    elements.progressAssignmentFilter.value = assignmentFilterValue;
+  }
+
+  const activeAssignmentFilter = elements.progressAssignmentFilter.value || "";
+  const filteredRecords = phaseRecords.filter((record) => {
+    const matchesClass = !activeClassFilter || record.classId === activeClassFilter;
+    const matchesAssignment = !activeAssignmentFilter || record.assignmentId === activeAssignmentFilter;
+    return matchesClass && matchesAssignment;
+  });
+
+  const classSummaries = state.classes
+    .map((classRecord) => {
+      const students = filteredRecords.filter((record) => record.classId === classRecord.id);
+      if (!students.length && activeClassFilter && activeClassFilter !== classRecord.id) {
+        return null;
+      }
+      const assignments = students.reduce((items, record) => {
+        const existing = items.find((item) => item.assignmentId === record.assignmentId);
+        if (existing) {
+          existing.count += 1;
+          existing.students.push(record);
+        } else {
+          items.push({
+            assignmentId: record.assignmentId,
+            assignmentName: record.assignmentName,
+            count: 1,
+            students: [record]
+          });
+        }
+        return items;
+      }, []);
+      assignments.sort((left, right) =>
+        compareProgressAssignments(classRecord.id, left.assignmentId, left.assignmentName, right.assignmentId, right.assignmentName)
+      );
+      return {
+        classId: classRecord.id,
+        className: classRecord.name,
+        count: students.length,
+        students,
+        assignments
+      };
+    })
+    .filter(Boolean)
+    .filter((summary) => summary.count || !filteredRecords.length);
+
+  if (!classSummaries.length) {
+    elements.classProgressSummary.innerHTML = '<div class="progress-empty">No students match the current class progress filters.</div>';
+    elements.classProgressDetail.classList.remove("visible");
+    elements.classProgressDetail.innerHTML = "";
+    progressDetailSelection = null;
+    return;
+  }
+
+  elements.classProgressSummary.innerHTML = classSummaries
+    .map((summary) => {
+      const isActiveClass =
+        progressDetailSelection?.type === "class" && progressDetailSelection.classId === summary.classId;
+      return `
+        <article class="progress-card ${isActiveClass ? "active" : ""}" data-progress-class="${summary.classId}">
+          <h4>${escapeHtml(summary.className)}</h4>
+          <div class="count">${summary.count}</div>
+          <div class="muted">Students enrolled in this phase</div>
+          <div class="progress-assignment-list">
+            ${summary.assignments
+              .map((assignment) => {
+                const isActiveAssignment =
+                  progressDetailSelection?.type === "assignment" &&
+                  progressDetailSelection.classId === summary.classId &&
+                  progressDetailSelection.assignmentId === assignment.assignmentId;
+                return `
+                  <button
+                    type="button"
+                    class="progress-assignment-btn ${isActiveAssignment ? "active" : ""}"
+                    data-progress-assignment="${assignment.assignmentId}"
+                    data-progress-assignment-class="${summary.classId}">
+                    <span>${escapeHtml(assignment.assignmentName)}</span>
+                    <strong>${assignment.count}</strong>
+                  </button>
+                `;
+              })
+              .join("")}
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  elements.classProgressSummary.querySelectorAll("[data-progress-class]").forEach((card) => {
+    card.addEventListener("click", () => {
+      const classId = card.dataset.progressClass;
+      progressDetailSelection =
+        progressDetailSelection?.type === "class" && progressDetailSelection.classId === classId
+          ? null
+          : { type: "class", classId };
+      renderClassProgress();
+    });
+  });
+
+  elements.classProgressSummary.querySelectorAll("[data-progress-assignment]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const classId = button.dataset.progressAssignmentClass;
+      const assignmentId = button.dataset.progressAssignment;
+      progressDetailSelection =
+        progressDetailSelection?.type === "assignment" &&
+        progressDetailSelection.classId === classId &&
+        progressDetailSelection.assignmentId === assignmentId
+          ? null
+          : { type: "assignment", classId, assignmentId };
+      renderClassProgress();
+    });
+  });
+
+  const detailRecords =
+    progressDetailSelection?.type === "assignment"
+      ? filteredRecords.filter(
+          (record) =>
+            record.classId === progressDetailSelection.classId &&
+            record.assignmentId === progressDetailSelection.assignmentId
+        )
+      : progressDetailSelection?.type === "class"
+        ? filteredRecords.filter((record) => record.classId === progressDetailSelection.classId)
+        : [];
+
+  if (!detailRecords.length) {
+    elements.classProgressDetail.classList.remove("visible");
+    elements.classProgressDetail.innerHTML = "";
+    if (progressDetailSelection) progressDetailSelection = null;
+    return;
+  }
+
+  const detailTitle =
+    progressDetailSelection.type === "assignment"
+      ? `${detailRecords[0].className} — ${detailRecords[0].assignmentName}`
+      : `${detailRecords[0].className} — Current Students`;
+
+  elements.classProgressDetail.innerHTML = `
+    <h4>${escapeHtml(detailTitle)}</h4>
+    <ul>
+      ${detailRecords
+        .slice()
+        .sort((left, right) => left.studentName.localeCompare(right.studentName))
+        .map((record) => `<li>${escapeHtml(record.studentName)}${record.coachName ? ` <span class="muted">· ${escapeHtml(record.coachName)}</span>` : ""}</li>`)
+        .join("")}
+    </ul>
+  `;
+  elements.classProgressDetail.classList.add("visible");
+}
+
+function getStudentProgressPhase(student) {
+  const studentName = `${student.firstName} ${student.lastName}`;
+  const coachName = getCoach(student.coachId)?.name || "";
+  const submissions = submissionsForStudent(student.id);
+  const pendingSubmission = submissions
+    .filter((submission) => submission.status !== "complete")
+    .sort((left, right) => new Date(right.uploadedAt) - new Date(left.uploadedAt))[0];
+
+  if (pendingSubmission) {
+    return {
+      studentId: student.id,
+      studentName,
+      coachName,
+      classId: pendingSubmission.classId,
+      className: getSubmissionClassName(pendingSubmission),
+      assignmentId: pendingSubmission.assignmentId,
+      assignmentName: getSubmissionAssignmentName(pendingSubmission)
+    };
+  }
+
+  const latestCompleted = submissions
+    .filter((submission) => submission.status === "complete")
+    .sort((left, right) => new Date(right.completedAt || right.uploadedAt) - new Date(left.completedAt || left.uploadedAt))[0];
+
+  if (!latestCompleted) {
+    const firstClass = state.classes[0];
+    const firstAssignment = firstClass?.assignments[0];
+    if (!firstClass) return null;
+    return {
+      studentId: student.id,
+      studentName,
+      coachName,
+      classId: firstClass.id,
+      className: firstClass.name,
+      assignmentId: firstAssignment?.id || `pending-${firstClass.id}` ,
+      assignmentName: firstAssignment?.name || "Awaiting assignments"
+    };
+  }
+
+  const classRecord = getClass(latestCompleted.classId);
+  const assignmentIndex = classRecord?.assignments.findIndex((item) => item.id === latestCompleted.assignmentId) ?? -1;
+  const nextAssignment = classRecord?.assignments[assignmentIndex + 1];
+  if (classRecord && nextAssignment) {
+    return {
+      studentId: student.id,
+      studentName,
+      coachName,
+      classId: classRecord.id,
+      className: classRecord.name,
+      assignmentId: nextAssignment.id,
+      assignmentName: nextAssignment.name
+    };
+  }
+
+  const classIndex = state.classes.findIndex((item) => item.id === latestCompleted.classId);
+  const nextClass = classIndex >= 0 ? state.classes[classIndex + 1] : null;
+  const nextClassAssignment = nextClass?.assignments[0];
+  if (nextClass && nextClassAssignment) {
+    return {
+      studentId: student.id,
+      studentName,
+      coachName,
+      classId: nextClass.id,
+      className: nextClass.name,
+      assignmentId: nextClassAssignment.id,
+      assignmentName: nextClassAssignment.name
+    };
+  }
+
+  return {
+    studentId: student.id,
+    studentName,
+    coachName,
+    classId: latestCompleted.classId,
+    className: getSubmissionClassName(latestCompleted),
+    assignmentId: `completed-${latestCompleted.classId}`,
+    assignmentName: "Completed all assignments"
+  };
+}
+
+function compareProgressAssignments(classId, leftAssignmentId, leftAssignmentName, rightAssignmentId, rightAssignmentName) {
+  const classRecord = getClass(classId);
+  const leftIndex = classRecord?.assignments.findIndex((assignment) => assignment.id === leftAssignmentId) ?? -1;
+  const rightIndex = classRecord?.assignments.findIndex((assignment) => assignment.id === rightAssignmentId) ?? -1;
+  const normalizedLeft = leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex;
+  const normalizedRight = rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex;
+  if (normalizedLeft !== normalizedRight) {
+    return normalizedLeft - normalizedRight;
+  }
+  return leftAssignmentName.localeCompare(rightAssignmentName);
 }
 
 function renderClassBuilderOptions() {
@@ -1024,7 +1569,17 @@ function renderClassCatalog() {
             ${classRecord.assignments.length === 0
               ? '<li class="muted">No assignments yet</li>'
               : classRecord.assignments
-                  .map((assignment) => `<li>${assignment.name} — ${assignment.questionCount} questions</li>`)
+                  .map(
+                    (assignment) => `
+                      <li class="catalog-assignment-item">
+                        <span class="catalog-assignment-text">${assignment.name} — ${assignment.questionCount} questions</span>
+                        <div class="catalog-actions catalog-assignment-actions">
+                          <button type="button" class="secondary" data-edit-assignment="${assignment.id}" data-class-id="${classRecord.id}">Edit</button>
+                          <button type="button" class="secondary" data-delete-assignment="${assignment.id}" data-class-id="${classRecord.id}">Delete</button>
+                        </div>
+                      </li>
+                    `
+                  )
                   .join("")}
           </ul>
         </article>
@@ -1055,6 +1610,43 @@ function renderClassCatalog() {
       }
       classRecord.name = trimmed;
       toast(`Class renamed to: ${trimmed}`);
+      render();
+    });
+  });
+
+  elements.classCatalog.querySelectorAll("[data-edit-assignment]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const classRecord = getClass(button.dataset.classId);
+      const assignment = classRecord?.assignments.find((item) => item.id === button.dataset.editAssignment);
+      if (!assignment) return;
+
+      const newName = prompt("Enter new assignment name:", assignment.name);
+      if (!newName || !newName.trim()) return;
+      const trimmedName = newName.trim();
+
+      const newQuestionCount = prompt("Enter new question count:", String(assignment.questionCount));
+      if (newQuestionCount === null) return;
+      const parsedQuestionCount = Number(newQuestionCount);
+      if (!Number.isInteger(parsedQuestionCount) || parsedQuestionCount < 1) {
+        toast("Question count must be at least 1.");
+        return;
+      }
+
+      assignment.name = trimmedName;
+      assignment.questionCount = parsedQuestionCount;
+      toast(`Updated assignment: ${trimmedName}`);
+      render();
+    });
+  });
+
+  elements.classCatalog.querySelectorAll("[data-delete-assignment]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const classRecord = getClass(button.dataset.classId);
+      if (!classRecord) return;
+      const assignment = classRecord.assignments.find((item) => item.id === button.dataset.deleteAssignment);
+      if (!assignment) return;
+      classRecord.assignments = classRecord.assignments.filter((item) => item.id !== assignment.id);
+      toast(`Deleted assignment: ${assignment.name}`);
       render();
     });
   });
@@ -1153,10 +1745,14 @@ function submissionsForStudent(studentId) {
   return state.submissions.filter((submission) => submission.studentId === studentId);
 }
 
+function getLatestStudentSubmission(studentId, predicate, dateField) {
+  return submissionsForStudent(studentId)
+    .filter(predicate)
+    .sort((a, b) => new Date(b[dateField] || b.uploadedAt) - new Date(a[dateField] || a.uploadedAt))[0];
+}
+
 function nextAssignmentLabel(student) {
-  const completed = submissionsForStudent(student.id)
-    .filter((submission) => submission.status === "complete")
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0];
+  const completed = getLatestStudentSubmission(student.id, (submission) => submission.status === "complete", "completedAt");
 
   if (!completed) {
     const firstClass = state.classes[0];
