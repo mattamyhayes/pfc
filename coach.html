@@ -48,7 +48,7 @@
         <div class="sponsor-nav">
           <button type="button" class="sponsor-nav-btn active" data-coach-section="upload">Upload</button>
           <button type="button" class="sponsor-nav-btn" data-coach-section="pending">Pending Grading</button>
-          <button type="button" class="sponsor-nav-btn" data-coach-section="waiting">Pending Student</button>
+          <button type="button" class="sponsor-nav-btn" data-coach-section="waiting">Student Progress</button>
         </div>
 
         <div class="coach-sections">
@@ -90,6 +90,23 @@
           </section>
 
           <section class="card coach-section hidden" id="coach-section-pending">
+            <h3>Pending Grading</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Class / assignment</th>
+                    <th>Volunteer</th>
+                    <th>Days with volunteer</th>
+                  </tr>
+                </thead>
+                <tbody id="coach-report"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="card coach-section hidden" id="coach-section-waiting">
             <h3>Student Progress</h3>
             <div class="table-wrap">
               <table>
@@ -100,22 +117,6 @@
                     <th>Last completed</th>
                     <th>Pending status</th>
                     <th>Days with volunteer</th>
-                  </tr>
-                </thead>
-                <tbody id="coach-report"></tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="card coach-section hidden" id="coach-section-waiting">
-            <h3>Pending Student</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Current Assignment</th>
-                    <th>Days Since Last Submission</th>
                   </tr>
                 </thead>
                 <tbody id="coach-waiting-report"></tbody>

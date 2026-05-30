@@ -44,7 +44,7 @@
         <div class="sponsor-nav">
           <button type="button" class="sponsor-nav-btn active" data-sponsor-section="institutions">Institutions</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="users">Users</button>
-          <button type="button" class="sponsor-nav-btn" data-sponsor-section="students">Students</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="students">Add Students</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="directory">Student Directory</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="progress">Class Progress</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="add-class">Add a Class</button>
@@ -67,6 +67,7 @@
           <section class="card sponsor-section hidden" id="sponsor-section-users">
             <h3>Create User</h3>
             <form id="user-form" class="form">
+              <input id="user-edit-id" type="hidden">
               <label>
                 Role
                 <select id="user-role">
@@ -86,8 +87,23 @@
                 Password
                 <input id="user-password" type="password" autocomplete="new-password" minlength="8" required>
               </label>
-              <button type="submit" class="primary">Create User</button>
+              <button id="user-form-submit" type="submit" class="primary">Create User</button>
             </form>
+
+            <h3>Existing Users</h3>
+            <div class="table-wrap">
+              <table id="user-directory-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="user-table"></tbody>
+              </table>
+            </div>
           </section>
 
           <section class="card sponsor-section hidden" id="sponsor-section-students">

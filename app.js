@@ -434,6 +434,9 @@ const elements = {
   institutionForm: document.querySelector("#institution-form"),
   institutionName: document.querySelector("#institution-name"),
   userForm: document.querySelector("#user-form"),
+  userFormSubmit: document.querySelector("#user-form-submit"),
+  userEditId: document.querySelector("#user-edit-id"),
+  userTable: document.querySelector("#user-table"),
   userRole: document.querySelector("#user-role"),
   userName: document.querySelector("#user-name"),
   userEmail: document.querySelector("#user-email"),
@@ -561,12 +564,43 @@ function bindEvents() {
   if (elements.userForm) {
     elements.userForm.addEventListener("submit", (event) => {
       event.preventDefault();
+      const editId = elements.userEditId?.value || "";
       const role = elements.userRole.value;
       const name = elements.userName.value.trim();
       const email = elements.userEmail.value.trim();
       const password = elements.userPassword.value.trim();
 
-      if (!name || !email || !password) {
+      if (!name || !email || (!editId && !password)) {
+        return;
+      }
+
+      if (editId) {
+        let user = state.users.coaches.find((candidate) => candidate.id === editId);
+        let currentRole = "coach";
+        if (!user) {
+          user = state.users.volunteers.find((candidate) => candidate.id === editId);
+          currentRole = "volunteer";
+        }
+
+        if (user) {
+          user.name = name;
+          user.email = email;
+          if (password) {
+            user.password = password;
+          }
+
+          if (role !== currentRole) {
+            const from = currentRole === "coach" ? state.users.coaches : state.users.volunteers;
+            const to = role === "coach" ? state.users.coaches : state.users.volunteers;
+            from.splice(from.indexOf(user), 1);
+            to.push(user);
+          }
+
+          toast(`${capitalize(role)} updated.`);
+        }
+
+        resetUserForm();
+        render();
         return;
       }
 
@@ -579,7 +613,7 @@ function bindEvents() {
       });
 
       queueEmail(email, `Welcome to PFC as a ${capitalize(role)}`);
-      elements.userForm.reset();
+      resetUserForm();
       toast(`${capitalize(role)} created.`);
       render();
     });
@@ -656,6 +690,7 @@ function render() {
   renderSponsorSections();
   renderCoachSections();
   renderSponsorForms();
+  renderUsers();
   renderStudentDirectoryFilters();
   renderStudents();
   renderClassProgress();
@@ -830,6 +865,31 @@ function renderCoachReport() {
   const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
   const rows = state.students
     .filter((student) => student.coachId === coach.id)
+    .map((student) => ({
+      student,
+      pending: getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt")
+    }))
+    .filter((entry) => entry.pending)
+    .map(({ student, pending }) => {
+      return `
+        <tr>
+          <td>${student.firstName} ${student.lastName}</td>
+          <td>${describeSubmission(pending)}</td>
+          <td>${getVolunteer(pending.volunteerId)?.name || "Volunteer"}</td>
+          <td>${daysSince(pending.uploadedAt)} days</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  elements.coachReport.innerHTML = rows || `<tr><td colspan="4">No papers are currently with a volunteer for grading.</td></tr>`;
+}
+
+function renderCoachWaitingReport() {
+  if (!elements.coachWaitingReport) return;
+  const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
+  const rows = state.students
+    .filter((student) => student.coachId === coach.id)
     .map((student) => {
       const pending = getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt");
       const completed = getLatestStudentSubmission(student.id, (submission) => submission.status === "complete", "completedAt");
@@ -839,36 +899,14 @@ function renderCoachReport() {
           <td>${student.firstName} ${student.lastName}</td>
           <td>${pending ? describeSubmission(pending) : nextAssignmentLabel(student)}</td>
           <td>${completed ? describeSubmission(completed) : "None yet"}</td>
-          <td>${pending ? `Waiting on ${getVolunteer(pending.volunteerId)?.name || "Volunteer"}` : "No paper pending"}</td>
+          <td>${pending ? `Waiting on ${getVolunteer(pending.volunteerId)?.name || "Volunteer"}` : "With Student"}</td>
           <td>${pending ? `${daysSince(pending.uploadedAt)} days` : "—"}</td>
         </tr>
       `;
     })
     .join("");
 
-  elements.coachReport.innerHTML = rows || `<tr><td colspan="5">No students assigned.</td></tr>`;
-}
-
-function renderCoachWaitingReport() {
-  if (!elements.coachWaitingReport) return;
-  const coach = getCoach(state.activeCoachId) || state.users.coaches[0];
-  const rows = state.students
-    .filter((student) => student.coachId === coach.id)
-    .filter((student) => !getLatestStudentSubmission(student.id, (submission) => submission.status !== "complete", "uploadedAt"))
-    .map((student) => {
-      const completed = getLatestStudentSubmission(student.id, (submission) => submission.status === "complete", "completedAt");
-
-      return `
-        <tr>
-          <td>${student.firstName} ${student.lastName}</td>
-          <td>${nextAssignmentLabel(student)}</td>
-          <td>${completed ? `${daysSince(completed.completedAt)} days` : "No submissions yet"}</td>
-        </tr>
-      `;
-    })
-    .join("");
-
-  elements.coachWaitingReport.innerHTML = rows || `<tr><td colspan="3">No students waiting for the next assignment.</td></tr>`;
+  elements.coachWaitingReport.innerHTML = rows || `<tr><td colspan="5">No students assigned.</td></tr>`;
 }
 
 function setCoachView(view) {
@@ -1235,6 +1273,63 @@ function renderSponsorForms() {
     elements.studentCoach,
     state.users.coaches.map((coach) => ({ value: coach.id, label: coach.name }))
   );
+}
+
+function resetUserForm() {
+  if (!elements.userForm) return;
+  elements.userForm.reset();
+  if (elements.userEditId) elements.userEditId.value = "";
+  if (elements.userPassword) {
+    elements.userPassword.required = true;
+    elements.userPassword.placeholder = "";
+  }
+  if (elements.userFormSubmit) elements.userFormSubmit.textContent = "Create User";
+}
+
+function renderUsers() {
+  if (!elements.userTable) return;
+
+  const rows = [
+    ...state.users.coaches.map((user) => ({ ...user, role: "coach" })),
+    ...state.users.volunteers.map((user) => ({ ...user, role: "volunteer" }))
+  ];
+
+  elements.userTable.innerHTML = rows.length
+    ? rows
+        .map(
+          (user) => `
+            <tr>
+              <td>${escapeHtml(user.name)}</td>
+              <td>${escapeHtml(user.email)}</td>
+              <td>${capitalize(user.role)}</td>
+              <td><button type="button" class="secondary" data-edit-user="${user.id}">Edit</button></td>
+            </tr>
+          `
+        )
+        .join("")
+    : '<tr><td colspan="4">No users yet.</td></tr>';
+
+  elements.userTable.querySelectorAll("[data-edit-user]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.dataset.editUser;
+      const coach = getCoach(id);
+      const user = coach || getVolunteer(id);
+      if (!user) {
+        return;
+      }
+
+      elements.userEditId.value = user.id;
+      elements.userRole.value = coach ? "coach" : "volunteer";
+      elements.userName.value = user.name;
+      elements.userEmail.value = user.email;
+      elements.userPassword.value = "";
+      elements.userPassword.required = false;
+      elements.userPassword.placeholder = "Leave blank to keep current password";
+      if (elements.userFormSubmit) elements.userFormSubmit.textContent = "Save User";
+      switchSponsorSection("users");
+      toast("User loaded for editing.");
+    });
+  });
 }
 
 function renderStudentDirectoryFilters() {
