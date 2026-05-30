@@ -282,6 +282,7 @@ const state = {
 let volunteerSortColumn = "days";
 let volunteerSortAsc = false;
 let sponsorActiveSection = "institutions";
+let coachActiveSection = "upload";
 let studentSortColumn = "name";
 let studentSortAsc = true;
 let progressDetailSelection = null;
@@ -307,6 +308,8 @@ const elements = {
   coachWaitingView: document.querySelector("#coach-waiting-view"),
   coachReport: document.querySelector("#coach-report"),
   coachWaitingReport: document.querySelector("#coach-waiting-report"),
+  coachNavBtns: document.querySelectorAll("[data-coach-section]"),
+  coachSections: document.querySelectorAll(".coach-section"),
   volunteerQueue: document.querySelector("#volunteer-queue"),
   volunteerQueueTable: document.querySelector("#volunteer-queue-table"),
   reviewPanel: document.querySelector("#review-panel"),
@@ -387,6 +390,14 @@ function bindEvents() {
   if (elements.coachViewWaiting) {
     elements.coachViewWaiting.addEventListener("click", () => {
       setCoachView("waiting");
+    });
+  }
+
+  if (elements.coachNavBtns.length) {
+    elements.coachNavBtns.forEach((button) => {
+      button.addEventListener("click", () => {
+        switchCoachSection(button.dataset.coachSection);
+      });
     });
   }
 
@@ -533,6 +544,7 @@ function render() {
   renderVolunteerQueue();
   renderVolunteerReview();
   renderSponsorSections();
+  renderCoachSections();
   renderSponsorForms();
   renderStudentDirectoryFilters();
   renderStudents();
@@ -1079,6 +1091,27 @@ function renderSponsorSections() {
 function switchSponsorSection(sectionName) {
   sponsorActiveSection = sectionName || sponsorActiveSection;
   renderSponsorSections();
+}
+
+function renderCoachSections() {
+  if (!elements.coachNavBtns.length || !elements.coachSections.length) return;
+  const availableSections = Array.from(elements.coachNavBtns).map((button) => button.dataset.coachSection);
+  if (!availableSections.includes(coachActiveSection)) {
+    coachActiveSection = availableSections[0];
+  }
+
+  elements.coachNavBtns.forEach((button) => {
+    button.classList.toggle("active", button.dataset.coachSection === coachActiveSection);
+  });
+
+  elements.coachSections.forEach((section) => {
+    section.classList.toggle("hidden", section.id !== `coach-section-${coachActiveSection}`);
+  });
+}
+
+function switchCoachSection(sectionName) {
+  coachActiveSection = sectionName || coachActiveSection;
+  renderCoachSections();
 }
 
 function renderSponsorForms() {
