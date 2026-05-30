@@ -1438,7 +1438,7 @@ function getStudentProgressPhase(student) {
       coachName,
       classId: firstClass.id,
       className: firstClass.name,
-      assignmentId: firstAssignment?.id || `pending-${firstClass.id}` ,
+      assignmentId: firstAssignment?.id || `pending-${firstClass.id}`,
       assignmentName: firstAssignment?.name || "Awaiting assignments"
     };
   }
