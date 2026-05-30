@@ -391,7 +391,7 @@ const state = {
 
 let volunteerSortColumn = "days";
 let volunteerSortAsc = false;
-let sponsorActiveSection = "institutions";
+let sponsorActiveSection = "directory";
 let coachActiveSection = "upload";
 let studentSortColumn = "name";
 let studentSortAsc = true;
