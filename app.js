@@ -143,26 +143,83 @@ const state = {
       id: "class-1",
       name: "Basic Beliefs",
       assignments: [
-        { id: "assignment-1", name: "Lesson 1", questionCount: 3 },
-        { id: "assignment-2", name: "Lesson 2", questionCount: 2 }
+        { id: "assignment-1", name: "1 Nicene Creed Part 1", questionCount: 8 },
+        { id: "assignment-2", name: "2 Nicene Creed Part 2", questionCount: 8 },
+        { id: "assignment-3", name: "3 Nicene Creed Part 3", questionCount: 8 },
+        { id: "assignment-4", name: "4 Nicene Creed Part 4", questionCount: 8 },
+        { id: "assignment-5", name: "5 Who is God", questionCount: 8 },
+        { id: "assignment-6", name: "6 Who is Jesus", questionCount: 8 },
+        { id: "assignment-7", name: "7 Who is the Holy Spirit", questionCount: 8 },
+        { id: "assignment-8", name: "8 What is the Bible", questionCount: 8 },
+        { id: "assignment-9", name: "9 What is Sin", questionCount: 8 },
+        { id: "assignment-10", name: "10 What is Salvation", questionCount: 8 },
+        { id: "assignment-11", name: "11 Who is Satan", questionCount: 8 },
+        { id: "assignment-12", name: "12 What is the church", questionCount: 8 },
+        { id: "assignment-13", name: "13 What is Heaven", questionCount: 8 },
+        { id: "assignment-14", name: "14 What is Hell", questionCount: 8 },
+        { id: "assignment-15", name: "15 How do I get to Heaven", questionCount: 8 },
+        { id: "assignment-16", name: "16 What is Prophecy", questionCount: 8 }
       ]
     },
     {
       id: "class-2",
       name: "Parables of Jesus",
       assignments: [
-        { id: "assignment-3", name: "Chapter Reflection", questionCount: 4 }
+        { id: "assignment-17", name: "17 The Prodigal Son Part 1", questionCount: 8 },
+        { id: "assignment-18", name: "18 The prodigal Son Part 2", questionCount: 8 },
+        { id: "assignment-19", name: "19 The Prodigal Son Part 3", questionCount: 8 },
+        { id: "assignment-20", name: "20 The Wheat and the Weeds", questionCount: 8 },
+        { id: "assignment-21", name: "21 Spiritual Farmers", questionCount: 8 },
+        { id: "assignment-22", name: "22 The Good Samaritan", questionCount: 8 },
+        { id: "assignment-23", name: "23 The Growing Seed", questionCount: 8 },
+        { id: "assignment-24", name: "24 The Lost", questionCount: 8 },
+        { id: "assignment-25", name: "25 The Unmerciful Servant", questionCount: 8 },
+        { id: "assignment-26", name: "26 The Workers", questionCount: 8 },
+        { id: "assignment-27", name: "27 The Wicked Tenants", questionCount: 8 },
+        { id: "assignment-28", name: "28 The Wedding Banquet", questionCount: 8 },
+        { id: "assignment-29", name: "29 The Ten Virgins", questionCount: 8 },
+        { id: "assignment-30", name: "30 The Talents", questionCount: 8 },
+        { id: "assignment-31", name: "31 The Wise Builder", questionCount: 8 },
+        { id: "assignment-32", name: "32 The Lamp", questionCount: 8 },
+        { id: "assignment-33", name: "33 The Judge and the Widow", questionCount: 8 },
+        { id: "assignment-34", name: "34 The Cost of Being a Disciple", questionCount: 8 },
+        { id: "assignment-35", name: "35 The Friend at Midnight", questionCount: 8 }
       ]
     },
     {
       id: "class-3",
       name: "Men of the Bible",
-      assignments: []
+      assignments: [
+        { id: "assignment-43", name: "43 Joseph is sold into Slavery", questionCount: 8 },
+        { id: "assignment-44", name: "44 Daniel and the Lion's Den", questionCount: 8 },
+        { id: "assignment-45", name: "45 David and Bathsheba", questionCount: 8 },
+        { id: "assignment-46", name: "46 TBD", questionCount: 8 },
+        { id: "assignment-47", name: "47 Jonah and the Whale", questionCount: 8 },
+        { id: "assignment-48", name: "48 Shadrach, Meshack, and Abednego and the Fiery Furnance", questionCount: 8 },
+        { id: "assignment-49", name: "49 Gideon's Army", questionCount: 8 },
+        { id: "assignment-50", name: "50 Manasseh Part 1", questionCount: 8 },
+        { id: "assignment-51", name: "51 Manasseh Part 2", questionCount: 8 },
+        { id: "assignment-52", name: "52 Korah's Rebellion", questionCount: 8 },
+        { id: "assignment-53", name: "53 Eutychus", questionCount: 8 },
+        { id: "assignment-54", name: "54 Nehemiah", questionCount: 8 },
+        { id: "assignment-55", name: "55 David and Goliath", questionCount: 8 },
+        { id: "assignment-56", name: "56 Nicodemus", questionCount: 8 },
+        { id: "assignment-57", name: "57 Caleb Part 1", questionCount: 8 },
+        { id: "assignment-58", name: "58 Caleb Part 2", questionCount: 8 },
+        { id: "assignment-59", name: "59 Eleazar", questionCount: 8 }
+      ]
     },
     {
       id: "class-4",
       name: "Prayer",
-      assignments: []
+      assignments: [
+        { id: "assignment-37", name: "37 What is Prayer", questionCount: 8 },
+        { id: "assignment-38", name: "38 Prayer in the life of Jesus", questionCount: 8 },
+        { id: "assignment-39", name: "39 TBD", questionCount: 8 },
+        { id: "assignment-40", name: "40 Answer to Prayer", questionCount: 8 },
+        { id: "assignment-41", name: "41 Reasons for Answered Prayer", questionCount: 8 },
+        { id: "assignment-42", name: "42 Our own Personal Prayer Life", questionCount: 8 }
+      ]
     }
   ],
   submissions: [
