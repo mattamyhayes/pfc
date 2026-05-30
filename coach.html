@@ -55,30 +55,36 @@
           <section class="card coach-section" id="coach-section-upload">
             <h3>Upload Assignment</h3>
             <form id="upload-form" class="form">
-              <label>
-                Student
-                <select id="upload-student" required></select>
-              </label>
-              <label>
-                Class
-                <select id="upload-class" required></select>
-              </label>
-              <label>
-                Assignment
-                <select id="upload-assignment" required></select>
-              </label>
-              <label>
-                Paper language
-                <select id="upload-language"></select>
-              </label>
-              <label>
-                Grader
-                <select id="upload-volunteer" required></select>
-              </label>
-              <label>
-                Upload PDF or photo
-                <input id="upload-file" type="file" accept="application/pdf,image/*" capture="environment" required>
-              </label>
+              <div class="form-row">
+                <label>
+                  Student
+                  <select id="upload-student" required></select>
+                </label>
+                <label>
+                  Class
+                  <select id="upload-class" required></select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  Assignment
+                  <select id="upload-assignment" required></select>
+                </label>
+                <label>
+                  Paper language
+                  <select id="upload-language"></select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  Grader
+                  <select id="upload-volunteer" required></select>
+                </label>
+                <label>
+                  Upload PDF or photo
+                  <input id="upload-file" type="file" accept="application/pdf,image/*" capture="environment" required>
+                </label>
+              </div>
               <button type="submit" class="primary">Upload Paper</button>
             </form>
           </section>
