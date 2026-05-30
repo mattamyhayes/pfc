@@ -77,39 +77,45 @@
           </section>
 
           <section class="card">
-            <h3>Student Progress</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Current class / assignment</th>
-                    <th>Last completed</th>
-                    <th>Pending status</th>
-                    <th>Days with volunteer</th>
-                  </tr>
-                </thead>
-                <tbody id="coach-report"></tbody>
-              </table>
+            <div class="view-toggle">
+              <button type="button" class="toggle-btn active" id="coach-view-pending">Pending Grading</button>
+              <button type="button" class="toggle-btn" id="coach-view-waiting">Waiting for Next Assignment</button>
+            </div>
+            <div id="coach-pending-view">
+              <h3>Student Progress</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Current class / assignment</th>
+                      <th>Last completed</th>
+                      <th>Pending status</th>
+                      <th>Days with volunteer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="coach-report"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="coach-waiting-view" class="hidden">
+              <h3>Waiting for Next Assignment</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Current Assignment</th>
+                      <th>Days Since Last Submission</th>
+                    </tr>
+                  </thead>
+                  <tbody id="coach-waiting-report"></tbody>
+                </table>
+              </div>
             </div>
           </section>
         </div>
       </section>
-
-      <!-- Summary & Activity (collapsed at bottom) -->
-      <details class="activity-drawer">
-        <summary>Activity Log &amp; Stats</summary>
-        <div class="drawer-content">
-          <section class="card">
-            <h3>Overview</h3>
-            <div class="stats" id="summary-stats"></div>
-          </section>
-          <section class="card">
-            <h3>Email Activity</h3>
-            <ul class="activity-list" id="email-log"></ul>
-          </section>
-        </div>
-      </details>
     </main>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>

@@ -47,7 +47,21 @@
         <div class="content-grid">
           <section class="card">
             <h3>Assigned Papers</h3>
-            <div id="volunteer-queue" class="card-list"></div>
+            <div class="table-wrap">
+              <table id="volunteer-queue-table">
+                <thead>
+                  <tr>
+                    <th class="sortable" data-sort="student">Student</th>
+                    <th class="sortable" data-sort="assignment">Class / Assignment</th>
+                    <th class="sortable" data-sort="date">Assigned Date</th>
+                    <th class="sortable" data-sort="days">Days Outstanding</th>
+                    <th class="sortable" data-sort="status">Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="volunteer-queue"></tbody>
+              </table>
+            </div>
           </section>
 
           <section class="card">
@@ -75,20 +89,6 @@
         </div>
       </section>
 
-      <!-- Summary & Activity (collapsed at bottom) -->
-      <details class="activity-drawer">
-        <summary>Activity Log &amp; Stats</summary>
-        <div class="drawer-content">
-          <section class="card">
-            <h3>Overview</h3>
-            <div class="stats" id="summary-stats"></div>
-          </section>
-          <section class="card">
-            <h3>Email Activity</h3>
-            <ul class="activity-list" id="email-log"></ul>
-          </section>
-        </div>
-      </details>
     </main>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
