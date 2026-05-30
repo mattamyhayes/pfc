@@ -9,7 +9,7 @@
     (function() {
       var params = new URLSearchParams(window.location.search);
       var role = params.get("role");
-      var pages = { coach: "coach.html", volunteer: "volunteer.html", sponsor: "sponsor.html", admin: "admin.html" };
+      var pages = { coach: "coach.html", volunteer: "volunteer.html", sponsor: "sponsor.html", admin: "sponsor.html" };
       var target = pages[role] || "coach.html";
       window.location.replace("./" + target);
     })();

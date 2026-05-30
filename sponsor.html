@@ -11,11 +11,13 @@
   <div id="app-shell" class="shell">
     <header class="hero">
       <div class="brand-block">
-        <img
-          class="brand-logo"
-          src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
-          alt="PFC Prisoners For Christ"
-        >
+        <a href="./index.html">
+          <img
+            class="brand-logo"
+            src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
+            alt="PFC Prisoners For Christ"
+          >
+        </a>
         <h1>Bible Institute Grading System</h1>
       </div>
       <div class="hero-actions">
@@ -30,7 +32,6 @@
       <a href="./coach.html" class="tab" data-role-link="coach">Coach</a>
       <a href="./volunteer.html" class="tab" data-role-link="volunteer">Volunteer</a>
       <a href="./sponsor.html" class="tab active" data-role-link="sponsor">Program Sponsor</a>
-      <a href="./admin.html" class="tab" data-role-link="admin">Admin</a>
     </nav>
 
     <main class="main-content">
@@ -46,6 +47,9 @@
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="students">Students</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="directory">Student Directory</button>
           <button type="button" class="sponsor-nav-btn" data-sponsor-section="progress">Class Progress</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="add-class">Add a Class</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="add-assignment">Add Assignment</button>
+          <button type="button" class="sponsor-nav-btn" data-sponsor-section="catalog">Class Catalog</button>
         </div>
 
         <div class="sponsor-sections">
@@ -158,6 +162,41 @@
             </div>
             <div id="class-progress-summary" class="progress-summary"></div>
             <div id="class-progress-detail" class="progress-detail"></div>
+          </section>
+
+          <section class="card sponsor-section hidden" id="sponsor-section-add-class">
+            <h3>Add a Class</h3>
+            <form id="add-class-form" class="form form-inline">
+              <label class="grow">
+                Class name
+                <input id="new-class-name" type="text" placeholder="Enter class name">
+              </label>
+              <button type="submit" class="secondary align-end">Add Class</button>
+            </form>
+          </section>
+
+          <section class="card sponsor-section hidden" id="sponsor-section-add-assignment">
+            <h3>Add Assignment</h3>
+            <form id="class-form" class="form">
+              <label>
+                Class
+                <select id="class-select" required></select>
+              </label>
+              <label>
+                Assignment name
+                <input id="assignment-name" type="text" required>
+              </label>
+              <label>
+                Number of questions
+                <input id="assignment-count" type="number" min="1" value="1" required>
+              </label>
+              <button type="submit" class="primary">Add Assignment</button>
+            </form>
+          </section>
+
+          <section class="card sponsor-section hidden" id="sponsor-section-catalog">
+            <h3>Class Catalog</h3>
+            <div id="class-catalog" class="card-list"></div>
           </section>
         </div>
       </section>

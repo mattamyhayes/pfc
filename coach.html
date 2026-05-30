@@ -11,11 +11,13 @@
   <div id="app-shell" class="shell">
     <header class="hero">
       <div class="brand-block">
-        <img
-          class="brand-logo"
-          src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
-          alt="PFC Prisoners For Christ"
-        >
+        <a href="./index.html">
+          <img
+            class="brand-logo"
+            src="https://github.com/user-attachments/assets/0ed14a35-9025-4bc7-b757-60d0b6239a60"
+            alt="PFC Prisoners For Christ"
+          >
+        </a>
         <h1>Bible Institute Grading System</h1>
       </div>
       <div class="hero-actions">
@@ -30,7 +32,6 @@
       <a href="./coach.html" class="tab active" data-role-link="coach">Coach</a>
       <a href="./volunteer.html" class="tab" data-role-link="volunteer">Volunteer</a>
       <a href="./sponsor.html" class="tab" data-role-link="sponsor">Program Sponsor</a>
-      <a href="./admin.html" class="tab" data-role-link="admin">Admin</a>
     </nav>
 
     <main class="main-content">
@@ -44,8 +45,14 @@
           </label>
         </div>
 
-        <div class="content-grid">
-          <section class="card">
+        <div class="sponsor-nav">
+          <button type="button" class="sponsor-nav-btn active" data-coach-section="upload">Upload</button>
+          <button type="button" class="sponsor-nav-btn" data-coach-section="pending">Pending Grading</button>
+          <button type="button" class="sponsor-nav-btn" data-coach-section="waiting">Pending Student</button>
+        </div>
+
+        <div class="coach-sections">
+          <section class="card coach-section" id="coach-section-upload">
             <h3>Upload Assignment</h3>
             <form id="upload-form" class="form">
               <label>
@@ -76,42 +83,37 @@
             </form>
           </section>
 
-          <section class="card">
-            <div class="view-toggle">
-              <button type="button" class="toggle-btn active" id="coach-view-pending">Pending Grading</button>
-              <button type="button" class="toggle-btn" id="coach-view-waiting">Waiting for Next Assignment</button>
+          <section class="card coach-section hidden" id="coach-section-pending">
+            <h3>Student Progress</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Current class / assignment</th>
+                    <th>Last completed</th>
+                    <th>Pending status</th>
+                    <th>Days with volunteer</th>
+                  </tr>
+                </thead>
+                <tbody id="coach-report"></tbody>
+              </table>
             </div>
-            <div id="coach-pending-view">
-              <h3>Student Progress</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>Current class / assignment</th>
-                      <th>Last completed</th>
-                      <th>Pending status</th>
-                      <th>Days with volunteer</th>
-                    </tr>
-                  </thead>
-                  <tbody id="coach-report"></tbody>
-                </table>
-              </div>
-            </div>
-            <div id="coach-waiting-view" class="hidden">
-              <h3>Waiting for Next Assignment</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>Current Assignment</th>
-                      <th>Days Since Last Submission</th>
-                    </tr>
-                  </thead>
-                  <tbody id="coach-waiting-report"></tbody>
-                </table>
-              </div>
+          </section>
+
+          <section class="card coach-section hidden" id="coach-section-waiting">
+            <h3>Pending Student</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Current Assignment</th>
+                    <th>Days Since Last Submission</th>
+                  </tr>
+                </thead>
+                <tbody id="coach-waiting-report"></tbody>
+              </table>
             </div>
           </section>
         </div>
