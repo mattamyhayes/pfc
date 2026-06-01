@@ -95,6 +95,7 @@ const translationPhrasebook = {
 // Supports basic Latin plus Latin-1/Extended-A characters used in demo phrasebook entries.
 const translationTokenPattern = /[A-Za-z\u00C0-\u017F']+/g;
 const translationNormalizePattern = /[^a-z0-9\u00C0-\u017F']+/g;
+const minimumNameFragmentLength = 3;
 
 const state = {
   activeRole: "coach",
@@ -1098,6 +1099,11 @@ function renderVolunteerReview() {
       General comments
       <textarea id="general-comments">${escapeHtml(submission.generalComments)}</textarea>
     </label>
+    <p class="helper-text">
+      To mark this assignment complete, include part of ${escapeHtml(student.firstName)} ${escapeHtml(
+        student.lastName
+      )}'s name in at least two feedback answers.
+    </p>
     <div class="button-row">
       <button type="button" id="save-review" class="secondary">Save progress</button>
       <button type="button" id="complete-review" class="primary">Mark assignment complete</button>
@@ -1120,6 +1126,12 @@ function renderVolunteerReview() {
     const isComplete = submission.questionFeedback.every((entry) => entry.trim().length > 0);
     if (!isComplete) {
       toast("Each question needs volunteer feedback before completion.");
+      return;
+    }
+
+    const matchingFeedbackCount = countFeedbackWithStudentName(submission.questionFeedback, student);
+    if (matchingFeedbackCount < 2) {
+      toast("Include part of the student's name in at least two feedback answers before completion.");
       return;
     }
 
@@ -2111,6 +2123,39 @@ function normalizeTranslationLookup(text) {
     .replace(translationNormalizePattern, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+function countFeedbackWithStudentName(feedbackEntries, student) {
+  const nameFragments = getStudentNameFragments(student);
+  return feedbackEntries.filter((entry) => feedbackMentionsStudentName(entry, nameFragments)).length;
+}
+
+function feedbackMentionsStudentName(feedback, nameFragments) {
+  const normalizedFeedback = normalizeNameCheckText(feedback);
+  return nameFragments.some((fragment) => normalizedFeedback.includes(fragment));
+}
+
+function getStudentNameFragments(student) {
+  return Array.from(
+    new Set(
+      [student.firstName, student.lastName]
+        .flatMap((value) => getNameFragments(normalizeNameCheckText(value)))
+        .filter(Boolean)
+    )
+  );
+}
+
+function getNameFragments(name) {
+  if (!name) {
+    return [];
+  }
+
+  const minimumFragmentLength = Math.max(minimumNameFragmentLength, Math.ceil(name.length / 2));
+  return Array.from(new Set([name, name.slice(0, minimumFragmentLength)]));
+}
+
+function normalizeNameCheckText(value) {
+  return `${value ?? ""}`.toLowerCase().replace(/[^a-z]/g, "");
 }
 
 function formatDate(value) {
