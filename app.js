@@ -2149,11 +2149,11 @@ function getNameFragments(name) {
     return [];
   }
 
-  const minimumLength = Math.max(3, Math.ceil(name.length / 2));
+  const minimumFragmentLength = Math.max(3, Math.ceil(name.length / 2));
   const fragments = [name];
 
-  for (let index = 0; index <= name.length - minimumLength; index += 1) {
-    fragments.push(name.slice(index, index + minimumLength));
+  for (let fragmentStart = 0; fragmentStart <= name.length - minimumFragmentLength; fragmentStart += 1) {
+    fragments.push(name.slice(fragmentStart, fragmentStart + minimumFragmentLength));
   }
 
   return fragments;
