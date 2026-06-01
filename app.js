@@ -95,6 +95,7 @@ const translationPhrasebook = {
 // Supports basic Latin plus Latin-1/Extended-A characters used in demo phrasebook entries.
 const translationTokenPattern = /[A-Za-z\u00C0-\u017F']+/g;
 const translationNormalizePattern = /[^a-z0-9\u00C0-\u017F']+/g;
+const minimumNameFragmentLength = 3;
 
 const state = {
   activeRole: "coach",
@@ -2149,14 +2150,8 @@ function getNameFragments(name) {
     return [];
   }
 
-  const minimumFragmentLength = Math.max(3, Math.ceil(name.length / 2));
-  const fragments = [name];
-
-  for (let fragmentStart = 0; fragmentStart <= name.length - minimumFragmentLength; fragmentStart += 1) {
-    fragments.push(name.slice(fragmentStart, fragmentStart + minimumFragmentLength));
-  }
-
-  return fragments;
+  const minimumFragmentLength = Math.max(minimumNameFragmentLength, Math.ceil(name.length / 2));
+  return Array.from(new Set([name, name.slice(0, minimumFragmentLength)]));
 }
 
 function normalizeNameCheckText(value) {
