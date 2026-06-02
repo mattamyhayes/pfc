@@ -96,6 +96,113 @@ const translationPhrasebook = {
 const translationTokenPattern = /[A-Za-z\u00C0-\u017F']+/g;
 const translationNormalizePattern = /[^a-z0-9\u00C0-\u017F']+/g;
 const minimumNameFragmentLength = 3;
+// Matches references like "John 3:16", "1 John 2:1-2", and "Juan 3:16".
+const bibleReferencePattern = /\b(?:[1-3]\s+)?[A-Za-z\u00C0-\u017F.]+(?:\s+[A-Za-z\u00C0-\u017F.]+)*\s+\d{1,3}:\d{1,3}(?:-\d{1,3})?\b/g;
+const bibleReferenceParsePattern = /^(.+?)\s+(\d{1,3}:\d{1,3}(?:-\d{1,3})?)$/;
+const bibleApiBaseUrl = "https://bible-api.com";
+const bibleApiTimeoutMs = 8000;
+const bibleCanonicalBooks = [
+  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
+  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
+  "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
+  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
+  "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke",
+  "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians",
+  "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon",
+  "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
+];
+const bibleBookAliases = {
+  genesis: "Genesis",
+  josue: "Joshua",
+  jueces: "Judges",
+  rut: "Ruth",
+  "1 samuel": "1 Samuel",
+  "2 samuel": "2 Samuel",
+  "1 reyes": "1 Kings",
+  "2 reyes": "2 Kings",
+  "1 cronicas": "1 Chronicles",
+  "2 cronicas": "2 Chronicles",
+  esdras: "Ezra",
+  nehemias: "Nehemiah",
+  ester: "Esther",
+  job: "Job",
+  exodo: "Exodus",
+  exodus: "Exodus",
+  levitico: "Leviticus",
+  leviticus: "Leviticus",
+  numeros: "Numbers",
+  numbers: "Numbers",
+  deuteronomio: "Deuteronomy",
+  deuteronomy: "Deuteronomy",
+  salmo: "Psalms",
+  salmos: "Psalms",
+  psalm: "Psalms",
+  psalms: "Psalms",
+  proverbios: "Proverbs",
+  proverbs: "Proverbs",
+  eclesiastes: "Ecclesiastes",
+  "cantares": "Song of Solomon",
+  "cantar de los cantares": "Song of Solomon",
+  isaias: "Isaiah",
+  isaiah: "Isaiah",
+  jeremias: "Jeremiah",
+  lamentaciones: "Lamentations",
+  ezequiel: "Ezekiel",
+  daniel: "Daniel",
+  oseas: "Hosea",
+  joel: "Joel",
+  amos: "Amos",
+  abdias: "Obadiah",
+  jonas: "Jonah",
+  miqueas: "Micah",
+  nahum: "Nahum",
+  habacuc: "Habakkuk",
+  sofonias: "Zephaniah",
+  hageo: "Haggai",
+  zacarias: "Zechariah",
+  malaquias: "Malachi",
+  mateo: "Matthew",
+  matthew: "Matthew",
+  marcos: "Mark",
+  mark: "Mark",
+  lucas: "Luke",
+  luke: "Luke",
+  juan: "John",
+  john: "John",
+  hechos: "Acts",
+  acts: "Acts",
+  romanos: "Romans",
+  romans: "Romans",
+  "1 corintios": "1 Corinthians",
+  "2 corintios": "2 Corinthians",
+  galatas: "Galatians",
+  efesios: "Ephesians",
+  filipenses: "Philippians",
+  colosenses: "Colossians",
+  "1 tesalonicenses": "1 Thessalonians",
+  "2 tesalonicenses": "2 Thessalonians",
+  "1 timoteo": "1 Timothy",
+  "2 timoteo": "2 Timothy",
+  tito: "Titus",
+  filemon: "Philemon",
+  hebreos: "Hebrews",
+  santiago: "James",
+  "1 pedro": "1 Peter",
+  "2 pedro": "2 Peter",
+  "1 juan": "1 John",
+  "1 john": "1 John",
+  "2 juan": "2 John",
+  "2 john": "2 John",
+  "3 juan": "3 John",
+  "3 john": "3 John",
+  judas: "Jude",
+  apocalipsis: "Revelation"
+};
+const bibleCanonicalBookLookup = new Map(
+  bibleCanonicalBooks.map((book) => [normalizeBibleBookLookupValue(book), book])
+);
+const bibleLookupCache = new Map();
+const bibleLookupInFlight = new Map();
 
 const state = {
   activeRole: "coach",
@@ -844,6 +951,7 @@ function createSubmission() {
     feedbackLanguage: state.preferredLanguage,
     generalComments: "",
     questionFeedback: Array.from({ length: assignment.questionCount }, () => ""),
+    answerScriptures: Array.from({ length: assignment.questionCount }, () => []),
     answers: Array.from(
       { length: assignment.questionCount },
       (_, index) => `Uploaded handwritten response for question ${index + 1}. Open ${file.name} to view the original paper.`
@@ -1066,6 +1174,7 @@ function renderVolunteerReview() {
       .map((answer, index) => {
         const feedback = submission.questionFeedback[index] || "";
         const translated = translateText(answer, submission.language, targetLanguage);
+        const scripturePassages = submission.answerScriptures?.[index] || [];
         return `
           <section class="question-card">
             <div>
@@ -1075,6 +1184,25 @@ function renderVolunteerReview() {
               <div class="helper-text">Original response</div>
               <div class="original-answer">${escapeHtml(answer)}</div>
             </div>
+            ${
+              scripturePassages.length
+                ? `
+                  <div>
+                    <div class="helper-text">Detected Bible passages</div>
+                    <div class="translated-answer">
+                      ${scripturePassages
+                        .map(
+                          (passage) => `
+                            <p><strong>${escapeHtml(passage.reference)}</strong></p>
+                            <p>${escapeHtml(passage.text)}</p>
+                          `
+                        )
+                        .join("")}
+                    </div>
+                  </div>
+                `
+                : ""
+            }
             ${
               showTranslated
                 ? `
@@ -1121,7 +1249,8 @@ function renderVolunteerReview() {
     renderVolunteerQueue();
   });
 
-  elements.reviewForm.querySelector("#complete-review").addEventListener("click", () => {
+  const completeReviewButton = elements.reviewForm.querySelector("#complete-review");
+  completeReviewButton.addEventListener("click", async () => {
     syncReviewForm(submission);
     const isComplete = submission.questionFeedback.every((entry) => entry.trim().length > 0);
     if (!isComplete) {
@@ -1135,14 +1264,21 @@ function renderVolunteerReview() {
       return;
     }
 
-    submission.status = "complete";
-    submission.completedAt = new Date().toISOString();
-    queueEmail(
-      getCoach(submission.coachId)?.email || "coach@pfc-demo.org",
-      `Assignment complete: ${student.firstName} ${student.lastName} - ${getSubmissionAssignmentName(submission)}`
-    );
-    toast("Assignment marked complete. PDF packet is ready.");
-    render();
+    completeReviewButton.disabled = true;
+    try {
+      toast("Looking up Bible passages in answers…");
+      await lookupSubmissionBiblePassages(submission);
+      submission.status = "complete";
+      submission.completedAt = new Date().toISOString();
+      queueEmail(
+        getCoach(submission.coachId)?.email || "coach@pfc-demo.org",
+        `Assignment complete: ${student.firstName} ${student.lastName} - ${getSubmissionAssignmentName(submission)}`
+      );
+      toast("Assignment marked complete. PDF packet is ready.");
+      render();
+    } finally {
+      completeReviewButton.disabled = false;
+    }
   });
 }
 
@@ -1161,6 +1297,7 @@ function generatePdfPacket() {
   }
 
   const student = getStudent(submission.studentId);
+  const answerScriptures = submission.answerScriptures || [];
   const translatedFeedback = submission.questionFeedback.map((feedback) =>
     translateText(feedback, submission.feedbackLanguage, submission.language)
   );
@@ -1203,6 +1340,14 @@ function generatePdfPacket() {
                 <div class="pdf-question">
                   <h2>Question ${index + 1}</h2>
                   <p>${escapeHtml(answer)}</p>
+                  ${(answerScriptures[index] || [])
+                    .map(
+                      (passage) => `
+                        <p><strong>${escapeHtml(passage.reference)}</strong></p>
+                        <p>${escapeHtml(passage.text)}</p>
+                      `
+                    )
+                    .join("")}
                 </div>
               `
             )
@@ -2123,6 +2268,126 @@ function normalizeTranslationLookup(text) {
     .replace(translationNormalizePattern, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+async function lookupSubmissionBiblePassages(submission) {
+  const answers = Array.isArray(submission.answers) ? submission.answers : [];
+  const lookupResults = await Promise.allSettled(answers.map((answer) => lookupBiblePassagesForAnswer(answer)));
+  const passagesByAnswer = lookupResults.map((result) => (result.status === "fulfilled" ? result.value : []));
+  submission.answerScriptures = passagesByAnswer;
+}
+
+async function lookupBiblePassagesForAnswer(answer) {
+  const references = extractBibleReferences(answer);
+  if (!references.length) {
+    return [];
+  }
+
+  const lookupResults = await Promise.allSettled(references.map((reference) => fetchBiblePassage(reference)));
+  return lookupResults
+    .map((result) => (result.status === "fulfilled" ? result.value : null))
+    .filter(Boolean);
+}
+
+function extractBibleReferences(answer) {
+  const matches = String(answer || "").match(bibleReferencePattern) || [];
+  const deduped = new Map();
+  matches.forEach((match) => {
+    const cleaned = match.trim().replace(/^[("'“”‘’\[]+|[),.;!?'“”‘’\]]+$/g, "");
+    const normalized = normalizeBibleReference(cleaned);
+    if (!normalized) {
+      return;
+    }
+    const key = normalized.toLowerCase();
+    if (!deduped.has(key)) {
+      deduped.set(key, normalized);
+    }
+  });
+  return Array.from(deduped.values());
+}
+
+function normalizeBibleReference(reference) {
+  const match = String(reference || "").trim().match(bibleReferenceParsePattern);
+  if (!match) {
+    return null;
+  }
+
+  const [, rawBook, chapterAndVerse] = match;
+  const normalizedBook = normalizeBibleBookName(rawBook);
+  if (!normalizedBook) {
+    return null;
+  }
+  return `${normalizedBook} ${chapterAndVerse}`;
+}
+
+function normalizeBibleBookName(bookName) {
+  const normalized = normalizeBibleBookLookupValue(bookName);
+  const aliasMatch = bibleBookAliases[normalized];
+  if (aliasMatch) {
+    return aliasMatch;
+  }
+  return bibleCanonicalBookLookup.get(normalized) || null;
+}
+
+function normalizeBibleBookLookupValue(bookName) {
+  return String(bookName || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^(iii|ii|i)\b\s+/, (value) => `${{ iii: "3", ii: "2", i: "1" }[value.trim().toLowerCase()] || value} `);
+}
+
+async function fetchBiblePassage(reference) {
+  const key = String(reference || "").trim().toLowerCase();
+  if (!key) {
+    return null;
+  }
+
+  if (bibleLookupCache.has(key)) {
+    return bibleLookupCache.get(key);
+  }
+
+  if (bibleLookupInFlight.has(key)) {
+    return bibleLookupInFlight.get(key);
+  }
+
+  const lookupPromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), bibleApiTimeoutMs);
+    try {
+      const response = await fetch(`${bibleApiBaseUrl}/${encodeURIComponent(reference)}`, { signal: controller.signal });
+      if (!response.ok) {
+        return null;
+      }
+      const payload = await response.json();
+      const verseText = String(payload?.text || "").trim();
+      if (!verseText) {
+        return null;
+      }
+      const result = {
+        reference: payload.reference || reference,
+        text: verseText
+      };
+      bibleLookupCache.set(key, result);
+      return result;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        console.warn("Bible verse lookup timed out:", reference);
+      } else {
+        console.warn("Bible verse lookup failed:", reference, error);
+      }
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+      bibleLookupInFlight.delete(key);
+    }
+  })();
+
+  bibleLookupInFlight.set(key, lookupPromise);
+  return lookupPromise;
 }
 
 function countFeedbackWithStudentName(feedbackEntries, student) {
